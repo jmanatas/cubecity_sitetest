@@ -1,6 +1,3 @@
-import * as THREE from 'three';
-import Stats from 'three/examples/jsm/libs/stats.module.js';
-import { Octree } from 'three/examples/jsm/math/Octree.js';
 import { OctreeHelper } from 'three/examples/jsm/helpers/OctreeHelper.js';
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js';
 import { loadTextures } from './textureLoader.js';
@@ -41,6 +38,9 @@ const MIN_ZOOM_DISTANCE = 0.5; // Minimum zoom distance in meters
 const MAX_ZOOM_DISTANCE = 2.5; // Maximum zoom distance in meters (2m limit + buffer)
 let currentZoomDistance = 1.0; // Current zoom distance
 let targetZoomPoint = new THREE.Vector3(0, 0, 0); // Point to zoom toward
+
+const scene = new THREE.Scene();
+const stats = new Stats();
 
 let screenshotTextures = [];
 const screenshotDomains = [
