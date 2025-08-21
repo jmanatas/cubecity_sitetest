@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>three.js - misc - octree collisions</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link type="text/css" rel="stylesheet" href="src/style.css">
+</head>
+<body>
+    <div id="info">
+        Octree threejs demo - basic collisions with static triangle mesh<br />
+        MOUSE to look around and to throw balls<br/>
+        WASD to move and SPACE to jump
+    </div>
+    <div id="container"></div>
+    
+    <!-- Loading overlay (should be separate from redirect dialog) -->
+    <div id="loading-overlay">
+        <div id="loading-progress">
+            <div class="spinner"></div>
+            <div id="loading-text">Loading textures...</div>
+            <div id="progress-bar-container">
+                <div id="progress-bar"></div>
+            </div>
+            <div id="progress-text">0/??? loaded</div>
+        </div>
+    </div>
+    
+    <!-- Redirect dialog (separate element) -->
+    <div id="redirect-dialog" class="dialog-overlay" style="display: none;">
+        <div class="dialog-content">
+            <p>Open this website in a new tab?</p>
+            <div class="dialog-buttons">
+                <button id="cancel-redirect">Cancel</button>
+                <button id="confirm-redirect">Go</button>
+            </div>
+        </div>
+    </div>
+    
+    <script type="module" src="./src/main.js"></script>
+</body>
+</html>
