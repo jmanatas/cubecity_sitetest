@@ -1,14 +1,4 @@
-import { OctreeHelper } from 'three/examples/jsm/helpers/OctreeHelper.js';
-import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js';
-import { loadTextures } from './textureLoader.js';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
-import { TextureLoader } from 'three';
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
-import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
-import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
-import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js';
+// Remove all import statements at the top and use global THREE object instead
 
 // Global variables
 let threejsData = { objects: [] }
@@ -39,9 +29,6 @@ const MAX_ZOOM_DISTANCE = 2.5; // Maximum zoom distance in meters (2m limit + bu
 let currentZoomDistance = 1.0; // Current zoom distance
 let targetZoomPoint = new THREE.Vector3(0, 0, 0); // Point to zoom toward
 
-const scene = new THREE.Scene();
-const stats = new Stats();
-
 let screenshotTextures = [];
 const screenshotDomains = [
      'berluti.com', 'chevignon.com', 'dior.com', 'dolcegabbana.com', 'hugoboss.com', 'ports1961.com', 'marinabaysands.com', 'stefanoricci.com', 'zegna.com', 'aliceandolivia.com', 'chanel.com', 'dvf.com', 'graceland.com', 'maxmara.com', 'misssixty.com', 'miumiu.com', 'self-portrait.com', 'snidel.com', 'toryburch.com', 'victoriassecret.com', 'weekendmaxmara.com', 'bape.com', 'aigle.com', 'aimer.com', 'alexandermcqueen.com', 'americanvintage-store.com', 'armani.com', 'balmain.com', 'bauhaus.com', 'brooksbrothers.com', 'calvinklein.com', 'clubmonaco.com', 'descente.com', 'diesel.com', 'edhardyoriginals.com', 'armani.com', 'givenchy.com', 'guess.com', 'hermes.com', 'kenzo.com', 'lacoste.com', 'girbaud.com', 'moncler.com', 'ralphlauren.com', 'ports1961.com', 'prada.com', 'rainbowshops.com', 'ysl.com', 'sandro-paris.com', 'thenorthface.com', 'tommy.com', 'uniqlo.com', 'valentino.com', 'versace.com', 'y-3.com', 'zara.com', 'adidas.com', 'arcteryx.com', 'columbia.com', 'fila.de', 'kswiss.com', 'lululemon.com', 'marathonsports.com', 'nike.com', 'skechers.com', 'vilebrequin.com', 'schiaparelli.com', 'jeanpaulgaultier.com', 'maisonmargiela.com', 'viktor-rolf.com', 'irisvanherpen.com', 'zuhairmurad.com', 'brunellocucinelli.com', 'bottegaveneta.com', 'therow.com', 'tods.com', 'adererror.com', 'musinsa.com', 'yohjiyamamoto.co.jp', 'sacai.jp', 'mooseknucklescanada.com', 'khaite.com', 'lemaire.fr', 'jacquemus.com', 'simonerocha.com', 'ganni.com', 'rickowens.eu', 'anndemeulemeester.com', 'burberry.cn', 'barbour.com', 'gucci.com', 'hm.com', 'carhartt-wip.com', 'carhartt.com', 'dickies.com', 'thefrankieshop.com', 'stussy.com', 'princesspolly.com', 'on.com', 'salomon.com', 'aloyoga.com', 'patagonia.com', 'oakley.com', 'mammut.com', 'hoka.com'
@@ -60,6 +47,10 @@ const HIGHLIGHT_HYSTERESIS = 200; // ms delay before switching objects
 // CAMERA MOVEMENT SPEEDS
 const WALK_SPEED = 10;
 const RUN_SPEED = 20;
+
+// Remove the duplicate scene and stats declarations
+// const scene = new THREE.Scene();  // REMOVE THIS LINE
+// const stats = new Stats();        // REMOVE THIS LINE
 
 async function loadObjectsData() {
     try {
@@ -525,7 +516,7 @@ function setupEventListeners() {
 
     // Keyboard controls
     document.addEventListener('keydown', (event) => {
-        if (event.code === 'Escape') {
+        if (event.code === 'Eescape') {
             document.exitPointerLock();
             document.body.style.cursor = 'auto';
         }
