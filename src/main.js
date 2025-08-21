@@ -1,4 +1,17 @@
-// Remove all import statements at the top and use global THREE object instead
+import * as THREE from 'three';
+import Stats from 'three/examples/jsm/libs/stats.module.js';
+import { Octree } from 'three/examples/jsm/math/Octree.js';
+import { OctreeHelper } from 'three/examples/jsm/helpers/OctreeHelper.js';
+import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js';
+import { loadTextures } from './textureLoader.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+import { TextureLoader } from 'three';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js';
 
 // Global variables
 let threejsData = { objects: [] }
