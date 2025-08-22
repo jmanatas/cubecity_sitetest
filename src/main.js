@@ -4,7 +4,6 @@ import { Octree } from 'three/examples/jsm/math/Octree.js';
 import { OctreeHelper } from 'three/examples/jsm/helpers/OctreeHelper.js';
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js';
 import { loadTextures } from './textureLoader.js';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import { TextureLoader } from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
@@ -36,24 +35,19 @@ let confirmRedirectBtn = null;
 let lastMouseX = 0;
 let lastMouseY = 0;
 const MOUSE_DEADZONE = 2; // pixels
-const ZOOM_SPEED = 0.1; // Adjust this value to control zoom sensitivity
-const MIN_ZOOM_DISTANCE = 0.5; // Minimum zoom distance in meters
-const MAX_ZOOM_DISTANCE = 2.5; // Maximum zoom distance in meters (2m limit + buffer)
-let currentZoomDistance = 1.0; // Current zoom distance
-let targetZoomPoint = new THREE.Vector3(0, 0, 0); // Point to zoom toward
 
 let screenshotTextures = [];
 const screenshotDomains = [
      'berluti.com', 'chevignon.com', 'dior.com', 'dolcegabbana.com', 'hugoboss.com', 'ports1961.com', 'marinabaysands.com', 'stefanoricci.com', 'zegna.com', 'aliceandolivia.com', 'chanel.com', 'dvf.com', 'graceland.com', 'maxmara.com', 'misssixty.com', 'miumiu.com', 'self-portrait.com', 'snidel.com', 'toryburch.com', 'victoriassecret.com', 'weekendmaxmara.com', 'bape.com', 'aigle.com', 'aimer.com', 'alexandermcqueen.com', 'americanvintage-store.com', 'armani.com', 'balmain.com', 'bauhaus.com', 'brooksbrothers.com', 'calvinklein.com', 'clubmonaco.com', 'descente.com', 'diesel.com', 'edhardyoriginals.com', 'armani.com', 'givenchy.com', 'guess.com', 'hermes.com', 'kenzo.com', 'lacoste.com', 'girbaud.com', 'moncler.com', 'ralphlauren.com', 'ports1961.com', 'prada.com', 'rainbowshops.com', 'ysl.com', 'sandro-paris.com', 'thenorthface.com', 'tommy.com', 'uniqlo.com', 'valentino.com', 'versace.com', 'y-3.com', 'zara.com', 'adidas.com', 'arcteryx.com', 'columbia.com', 'fila.de', 'kswiss.com', 'lululemon.com', 'marathonsports.com', 'nike.com', 'skechers.com', 'vilebrequin.com', 'schiaparelli.com', 'jeanpaulgaultier.com', 'maisonmargiela.com', 'viktor-rolf.com', 'irisvanherpen.com', 'zuhairmurad.com', 'brunellocucinelli.com', 'bottegaveneta.com', 'therow.com', 'tods.com', 'adererror.com', 'musinsa.com', 'yohjiyamamoto.co.jp', 'sacai.jp', 'mooseknucklescanada.com', 'khaite.com', 'lemaire.fr', 'jacquemus.com', 'simonerocha.com', 'ganni.com', 'rickowens.eu', 'anndemeulemeester.com', 'burberry.cn', 'barbour.com', 'gucci.com', 'hm.com', 'carhartt-wip.com', 'carhartt.com', 'dickies.com', 'thefrankieshop.com', 'stussy.com', 'princesspolly.com', 'on.com', 'salomon.com', 'aloyoga.com', 'patagonia.com', 'oakley.com', 'mammut.com', 'hoka.com'
 ];
 
-// Add this at the top of your file
+// Maximum number of concurrent texture loads
 const MAX_CONCURRENT_LOADS = 10; // Limit concurrent loads to avoid rate limiting
 
 // Highlight effect variables
 let highlightEffectEnabled = false;
 let highlightedObject = null;
-let originalMaterials = new Map(); // Changed to let
+let originalMaterials = new Map();
 let lastHighlightTime = 0;
 const HIGHLIGHT_HYSTERESIS = 200; // ms delay before switching objects
 
@@ -61,10 +55,7 @@ const HIGHLIGHT_HYSTERESIS = 200; // ms delay before switching objects
 const WALK_SPEED = 10;
 const RUN_SPEED = 20;
 
-// Remove the duplicate scene and stats declarations
-// const scene = new THREE.Scene();  // REMOVE THIS LINE
-// const stats = new Stats();        // REMOVE THIS LINE
-
+// Load object/geometry data from JSON file
 async function loadObjectsData() {
     try {
         const response = await fetch('threejs_export.json');
@@ -77,6 +68,7 @@ async function loadObjectsData() {
     }
 }
 
+// Create a colored fallback texture
 function createColoredFallbackTexture() {
     const canvas = document.createElement('canvas');
     canvas.width = canvas.height = 1024;
@@ -91,6 +83,7 @@ function createColoredFallbackTexture() {
 
 // Player variables
 const keyStates = {};
+
 // Caching geometries for better performance
 const geometryCache = {};
 
@@ -119,7 +112,6 @@ const vector2 = new THREE.Vector3();
 const vector3 = new THREE.Vector3();
 
 // Texture Aspect Ratio Helper Functions
-// Add these helper functions at the top of your file (with other utility functions)
 function isPowerOfTwo(value) {
   return (value & (value - 1)) === 0 && value !== 0;
 }
@@ -152,17 +144,8 @@ async function loadJSON() {
 
 // Helper functions
 function setupLights() {
-    /*
-  // Neutral white ambient light
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
-  scene.add(ambientLight);
 
-  // Neutral directional light
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-  directionalLight.position.set(5, 10, 7);
-  scene.add(directionalLight);
-    */
-       // Hemisphere light (from webgl_lights_hemisphere.html)
+    // Hemisphere light (from webgl_lights_hemisphere.html)
     const hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 2);
     hemiLight.color.setHSL(0.6, 1, 0.6);
     hemiLight.groundColor.setHSL(0.095, 1, 0.75);
@@ -240,6 +223,7 @@ function setupTeleportButton() {
 function createObjectListWindow() {
     if (document.getElementById('object-list')) return;
 
+    // Create the object list container
     const container = document.createElement('div');
     container.id = 'object-list';
     container.style.display = 'none'; // Explicitly set to hidden
@@ -247,22 +231,31 @@ function createObjectListWindow() {
     // Create header section
     const header = document.createElement('div');
     header.id = 'object-list-header';
-    
+
+    // Create title
     const title = document.createElement('h3');
     title.textContent = 'Scene Objects';
     header.appendChild(title);
-    
+
+    // Create teleport button
     const teleportBtn = document.createElement('button');
     teleportBtn.id = 'teleport-button';
     teleportBtn.textContent = 'GO!';
     header.appendChild(teleportBtn);
-    
+
+    // Create close button
+    const closeBtn = document.createElement('button');
+    closeBtn.id = 'object-list-close';
+    closeBtn.textContent = 'Close';
+    header.appendChild(closeBtn);
+
     container.appendChild(header);
 
     // Create scrollable content section
     const content = document.createElement('div');
     content.id = 'object-list-content';
-    
+
+    // Create the list container
     const list = document.createElement('div');
     list.id = 'object-list-items';
     content.appendChild(list);
@@ -278,38 +271,40 @@ function createObjectListWindow() {
 // Only updates if objectsData is available.
 function updateObjectList() {
     const listElement = document.getElementById('object-list-items');
+    // Clear existing items
     if (!listElement) {
         console.error("List element not found");
         return;
     }
-    
+    // Check if objectsData is available
     if (!objectsData.objects) {
         console.error("No objects data available");
         return;
     }
     
     listElement.innerHTML = '';
-    
+    // Create object items
     objectsData.objects.forEach((objData, index) => {
         const objName = objData.name || `Object_${index}`;
         const item = document.createElement('div');
         item.className = `object-item ${selectedObjectIndex === index ? 'selected' : ''}`;
         item.dataset.index = index;
-        
+        // Add click event listener
         item.onclick = handleObjectClick;
-        
+        // Highlight the selected object
         const nameSpan = document.createElement('span');
         nameSpan.className = 'object-name';
         nameSpan.textContent = objName;
-        
+        // Create position span
         const posSpan = document.createElement('span');
         posSpan.className = 'object-position';
+        // Create position text
         if (objData.position) {
             posSpan.textContent = ` (${objData.position[0]?.toFixed(1) || 0}, ${
                                  objData.position[1]?.toFixed(1) || 0}, ${
                                  objData.position[2]?.toFixed(1) || 0})`;
         }
-        
+        // Append elements to item
         item.appendChild(nameSpan);
         item.appendChild(posSpan);
         listElement.appendChild(item);
@@ -332,29 +327,28 @@ function handleObjectClick() {
 // or falls back to colored materials with random HSL values.
 // Ensures consistent material properties (roughness, metalness) for visual coherence.
 function createRandomMaterial(position, uvs, isVertical) {
+    // Create a texture from the screenshot if available
     const texture = screenshotTextures.length > 0 
         ? screenshotTextures[Math.floor(Math.random() * screenshotTextures.length)]
         : null;
-
+    // Create a new material
     const material = new THREE.MeshStandardMaterial({
         roughness: 0.7,
         metalness: 0.1,
         side: THREE.DoubleSide
     });
-
+    // Apply UV mapping
     if (texture) {
         texture.wrapS = THREE.RepeatWrapping;
         texture.wrapT = THREE.RepeatWrapping;
-        texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-        
+        texture.anisotropy = renderer.capabilities.getMaxAnisotropy();        
         // Reset any texture transformations
         texture.repeat.set(1, 1);
         texture.offset.set(0, 0);
-        texture.center.set(0.5, 0.5);
-        
+        texture.center.set(0.5, 0.5);        
         // Remove the rotation here since we're handling it in UV mapping
         texture.rotation = 0;
-        
+
         material.map = texture;
         material.needsUpdate = true;
     } else {
@@ -364,6 +358,7 @@ function createRandomMaterial(position, uvs, isVertical) {
     return material;
 }
 
+// Sets up a fallback scene with basic lighting and a ground plane.
 function setupFallbackScene() {
     // Add lights
     const light = new THREE.AmbientLight(0xffffff, 0.5);
@@ -396,7 +391,7 @@ function animate() {
 
     // Only update if needed
     if (stats) stats.begin();
-    
+    // Cap deltaTime to avoid large jumps
     const deltaTime = Math.min(0.05, clock.getDelta());
     
     // Skip updates when tab is not visible
@@ -472,7 +467,7 @@ function setupObjectClickHandler() {
         let texture = highlightedObject.material;
         if (Array.isArray(texture)) texture = texture[0];
         texture = texture.map;
-        
+        // Get texture URL
         if (texture && textureUrls.has(texture)) {
             const url = textureUrls.get(texture);
             
@@ -485,38 +480,6 @@ function setupObjectClickHandler() {
             window.open(url, '_blank', 'noopener,noreferrer');
         }
     });
-}
-
-// Mouse wheel zoom function with 2m limit and inverted scroll - dynamic target
-function handleMouseWheel(event) {
-    // Prevent default scrolling behavior
-    event.preventDefault();
-    
-    // Inverted scroll: scroll down = zoom in, scroll up = zoom out
-    const zoomDirection = event.deltaY > 0 ? 1 : -1;
-    
-    // Calculate new zoom distance
-    const newZoomDistance = currentZoomDistance + (zoomDirection * ZOOM_SPEED);
-    
-    // Apply 2-meter limit (with small buffer for smooth operation)
-    if (newZoomDistance >= MIN_ZOOM_DISTANCE && newZoomDistance <= MAX_ZOOM_DISTANCE) {
-        currentZoomDistance = newZoomDistance;
-        
-        // Calculate target point 10 units in front of camera
-        const targetPoint = new THREE.Vector3();
-        camera.getWorldDirection(targetPoint);
-        targetPoint.multiplyScalar(10).add(camera.position);
-        
-        // Calculate direction from target to camera
-        const direction = new THREE.Vector3();
-        direction.subVectors(camera.position, targetPoint).normalize();
-        
-        // Set new camera position
-        camera.position.copy(targetPoint).addScaledVector(direction, currentZoomDistance);
-        
-        // Make sure camera still looks at the target
-        camera.lookAt(targetPoint);
-    }
 }
 
 // Initializes all application event listeners including:
@@ -551,21 +514,26 @@ function setupEventListeners() {
 
     // Handle pointer lock change
     document.addEventListener('pointerlockchange', () => {
+        // Check if pointer lock is active
         if (document.pointerLockElement === document.body) {
+            // Pointer lock is active
             if (highlightEffectEnabled) {
                 document.body.classList.add('highlight-mode');
+                // Check if highlighted object has a texture URL
                 if (highlightedObject && highlightedObject.material.map && textureUrls.has(highlightedObject.material.map)) {
                     document.body.classList.add('clickable');
                 }
             } else {
+                // Not in highlight mode
                 document.body.style.cursor = 'none';
             }
         } else {
+            // Pointer lock is inactive
             document.body.classList.remove('highlight-mode', 'clickable');
             document.body.style.cursor = 'auto';
         }
     });
-
+    // End pointer lock change
     document.addEventListener('visibilitychange', () => {
         if (document.hidden && highlightEffectEnabled) {
             highlightEffectEnabled = false;
@@ -578,6 +546,7 @@ function setupEventListeners() {
     // Alt to highlight objects
     document.addEventListener('keydown', function(event) {
         keyStates[event.code] = true;
+        // Check if Alt is pressed
         if (event.code === 'AltLeft') {
             highlightEffectEnabled = true;
             document.body.classList.add('highlight-mode');
@@ -586,6 +555,7 @@ function setupEventListeners() {
                 (renderer.domElement.width/2) / window.innerWidth * 2 - 1,
                 -(renderer.domElement.height/2) / window.innerHeight * 2 + 1
             );
+            // Force update even without mouse movement to make sure object stays highlighted if holding Alt
             const raycaster = new THREE.Raycaster();
             raycaster.setFromCamera(mouse, camera);
             const intersects = raycaster.intersectObjects(worldObjects.children, true);
@@ -594,7 +564,7 @@ function setupEventListeners() {
             }
         }
     });
-
+    // End Alt key highlight
     document.addEventListener('keyup', function(event) {
         keyStates[event.code] = false;
         if (event.code === 'AltLeft') {
@@ -613,22 +583,26 @@ function setupEventListeners() {
         Math.abs(event.clientY - lastMouseY) < MOUSE_DEADZONE) {
         return;
     }
-    
+
+    // Update last mouse position
     lastMouseX = event.clientX;
     lastMouseY = event.clientY;
-    
+
+    // Calculate mouse position in normalized device coordinates (-1 to +1) for both components
     const mouse = new THREE.Vector2(
         (event.clientX / window.innerWidth) * 2 - 1,
         -(event.clientY / window.innerHeight) * 2 + 1
     );
 
+    // Create a raycaster from the camera
     const raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(mouse, camera);
     
     // Improved intersection detection:
     raycaster.params.Points.threshold = 0.1; // For point-like objects
     raycaster.params.Line.threshold = 0.1;   // For line-like objects
-    
+
+    // Check for intersections
     const intersects = raycaster.intersectObjects(worldObjects.children, true);
 
     // hysteresis to prevent flickering between objects
@@ -666,6 +640,7 @@ function setupEventListeners() {
 
     // Continuous Alt check - modified to maintain dimming
     function checkAltKeyState() {
+        //
         if (highlightEffectEnabled) {
             if (!keyStates['AltLeft']) {
                 // Alt was released
@@ -681,6 +656,7 @@ function setupEventListeners() {
                 const raycaster = new THREE.Raycaster();
                 raycaster.setFromCamera(mouse, camera);
                 const intersects = raycaster.intersectObjects(worldObjects.children, true);
+                // Check if we hit anything
                 if (intersects.length > 0) {
                     applyHighlightEffect(intersects[0].object);
                 }
@@ -694,11 +670,12 @@ function setupEventListeners() {
 // Toggle Teleport windows with mouse click or using 'T' key
 function toggleTeleportWindow() {
     const list = document.getElementById('object-list');
+    // Check if list exists
     if (!list) return;
-    
+    // Toggle visibility
     const isHidden = list.style.display === 'none';
     list.style.display = isHidden ? 'block' : 'none';
-    
+    // Update teleport button visibility
     if (isHidden) {
         updateObjectList();
         // Exit Pointer Lock when showing the UI
@@ -722,7 +699,7 @@ function applyHighlightEffect(object) {
     outlinePass.edgeStrength = size < 1.0 ? 5.0 : 3.0;
     outlinePass.selectedObjects = [object];
     
-    // Restore dimming effect - this is what was missing
+    // Restore dimming effect
     worldObjects.traverse((child) => {
         if (!child.isMesh || child === object || !child.material) return;
         
@@ -746,14 +723,12 @@ function applyHighlightEffect(object) {
         document.body.classList.remove('clickable');
     }
     
-    // Check if object has a clickable texture
-    //const hasClickableTexture = highlightedObject.material.map && textureUrls.has(highlightedObject.material.map);
-    
     // Add clickable class if texture has URL
     document.body.classList.toggle('clickable', hasClickableTexture);
     
     // raycaster precision for small objects
     worldObjects.traverse((child) => {
+        // Check if child is a mesh
         if (child.isMesh) {
             // Increase precision for small objects
             if (child.geometry.boundingSphere) {
@@ -793,7 +768,8 @@ function resetHighlightEffect() {
     
     // Clear outline selection
     outlinePass.selectedObjects = [];
-    
+
+    // Restore original materials
     worldObjects.traverse((child) => {
         if (originalMaterials.has(child)) {
             child.material = originalMaterials.get(child);
@@ -832,6 +808,7 @@ async function loadScreenshotTextures() {
         textureLoader.load(
           url,
           (texture) => {
+            // Check if texture is valid
             if (!texture.image || texture.image.width === 0) {
               const fallback = createColoredFallbackTexture();
               const fallbackTexture = new THREE.CanvasTexture(fallback);
@@ -839,7 +816,7 @@ async function loadScreenshotTextures() {
               resolve(fallbackTexture);
               return;
             }
-            
+            // Texture is valid
             texture.wrapS = THREE.RepeatWrapping;
             texture.wrapT = THREE.RepeatWrapping;
             texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
@@ -856,7 +833,7 @@ async function loadScreenshotTextures() {
           }
         );
       });
-      
+      // Add texture to the list
       screenshotTextures.push(texture);
       updateProgress(i + 1, screenshotDomains.length);
     } catch (error) {
@@ -890,14 +867,13 @@ async function init() {
         // Create basic Three.js components
         scene = new THREE.Scene();
         //scene.background = new THREE.Color(0x88ccee);
-        //scene.fog = new THREE.Fog(0x88ccee, 0, 500); //color, near, far
-
+        scene.fog = new THREE.Fog(0xfffae6, 0, 200); //color, near, far
 
         // Camera setup - position it at the player's head
         camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 300);
         camera.rotation.order = 'YXZ';
         
-        // Setup player and spheres
+        // Setup player
         setupPlayer();
 
         renderer = new THREE.WebGLRenderer({
@@ -936,21 +912,6 @@ async function init() {
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
-
-        // Initialize zoom system
-        currentZoomDistance = camera.position.distanceTo(targetZoomPoint);
-        // Ensure initial distance is within limits
-        if (currentZoomDistance < MIN_ZOOM_DISTANCE) {
-            currentZoomDistance = MIN_ZOOM_DISTANCE;
-        } else if (currentZoomDistance > MAX_ZOOM_DISTANCE) {
-            currentZoomDistance = MAX_ZOOM_DISTANCE;
-        }
-
-        // Position camera at the correct distance
-        const direction = new THREE.Vector3();
-        direction.subVectors(camera.position, targetZoomPoint).normalize();
-        camera.position.copy(targetZoomPoint).addScaledVector(direction, currentZoomDistance);
-        camera.lookAt(targetZoomPoint);
 
         // Set up post-processing
         composer = new EffectComposer(renderer);
@@ -996,9 +957,8 @@ async function init() {
         toggleBtn.textContent = 'Teleport'; 
         toggleBtn.style.pointerEvents = 'auto';
         toggleBtn.style.zIndex = '101'; // Ensure it's above the list
-
+        //toggleBtn.style.display = 'none'; // Hide by default
         toggleBtn.addEventListener('click', toggleTeleportWindow);
-
         document.body.appendChild(toggleBtn);
 
         // Initialize world
@@ -1012,13 +972,13 @@ async function init() {
           // Create or reuse geometry
           const geometryKey = objData.vertices.join('|');
           let geometry = geometryCache[geometryKey];
-
+          // Check if geometry exists
           if (!geometry) {
               geometry = new THREE.BufferGeometry();
               geometry.setAttribute('position', new THREE.Float32BufferAttribute(objData.vertices, 3));
               geometryCache[geometryKey] = geometry;
           }
-
+          // Set indices if available
           if (objData.indices?.length > 0) {
             geometry.setIndex(objData.indices);
           }
@@ -1052,9 +1012,10 @@ async function init() {
             // Generate UVs
             const uvs = [];
             for (let i = 0; i < positions.length; i += 3) {
+                // Get UV coordinates based on the dominant axis
                 if (isVertical) {
+                    // YZ plane (wall primarily facing X)
                     if (absNormal.x > absNormal.z) {
-                        // YZ plane (wall primarily facing X)
                         const u = (positions[i+1] - boundingBox.min.y) / size.y;
                         const v = (positions[i+2] - boundingBox.min.z) / size.z;
                         
@@ -1082,6 +1043,7 @@ async function init() {
                     );
                 }
             }
+            // Set UVs
             geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
 
             // Recompute normals if needed
@@ -1090,6 +1052,7 @@ async function init() {
             // After creating geometry, add this to fix vertical planes rotation
             geometry.computeVertexNormals();
 
+            // Access normals array
             const normals = geometry.attributes.normal.array;
 
             // Re-order vertices to ensure consistent winding for vertical planes
@@ -1100,7 +1063,7 @@ async function init() {
                     Math.abs(normal.y),
                     Math.abs(normal.z)
                 );
-                
+                // Determine winding order
                 if (absNormal.x > absNormal.z) {
                     // For X-facing walls, ensure vertices are ordered clockwise when viewed from front
                     // (Add your vertex reordering logic here)
@@ -1108,11 +1071,9 @@ async function init() {
                     // For Z-facing walls, ensure consistent ordering
                     // (Add your vertex reordering logic here)
                 }
-                
                 // Recompute normals after reordering
                 geometry.computeVertexNormals();
             }
-
             // Get position safely
             const position = new THREE.Vector3(
                 objData.position?.[0] || 0,
@@ -1122,7 +1083,7 @@ async function init() {
 
             // Create material with position and UVs
             const material = createRandomMaterial(position, objData.uvs, isVertical);
-
+            
             const mesh = new THREE.Mesh(geometry, material);
             mesh.position.copy(position);
             mesh.rotation.set(
@@ -1138,24 +1099,6 @@ async function init() {
             mesh.castShadow = objData.castShadow !== false;
             mesh.receiveShadow = objData.receiveShadow !== false;
             worldObjects.add(mesh);
-
-            /*
-            // Debug visualization - shows plane normals
-            if (debugEnabled) {
-                const normalHelper = new THREE.ArrowHelper(
-                    normal.clone().normalize(),
-                    mesh.position,
-                    2,
-                    isVertical ? 0xff0000 : 0x00ff00
-                );
-                scene.add(normalHelper);
-                debugObjects.push(normalHelper);
-                
-                console.log(`Plane type: ${isVertical ? 'VERTICAL' : 'HORIZONTAL'}`, 
-                        `Normal:`, normal, 
-                        `UV mapping:`, isVertical ? (absNormal.x > absNormal.z ? 'YZ' : 'XY') : 'XZ');
-            }
-            */
         });
 
         // Add world to scene
@@ -1199,6 +1142,5 @@ async function init() {
         setupFallbackScene();
         animate();
     }
-
 }
 init();
