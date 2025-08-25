@@ -1,6 +1,6 @@
 import * as THREE from 'https://cdn.skypack.dev/three@0.162.0';
 import Stats from 'https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/libs/stats.module.js';
-import { Octree } from 'https://cdn.skypack.dev/three@0.162.0/examples/jsm/math/Octree.js';
+import { Octree } from 'https://jmanatas.github.io/cubecity_sitetest/Octree.js';
 import { OctreeHelper } from 'https://cdn.skypack.dev/three@0.162.0/examples/jsm/helpers/OctreeHelper.js';
 import { GUI } from 'https://cdn.skypack.dev/three@0.162.0/examples/jsm/libs/lil-gui.module.min.js';
 import { RGBELoader } from 'https://cdn.skypack.dev/three@0.162.0/examples/jsm/loaders/RGBELoader.js';
