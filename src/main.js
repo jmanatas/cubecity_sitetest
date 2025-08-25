@@ -11,6 +11,18 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js';
+import { Capsule } from 'three/examples/jsm/math/Capsule.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { AvatarController } from './avatarController.js';
+import { Avatar } from './avatar.js';
+import { PhysicsWorld, createPhysicsSphere, GRAVITY, SPHERE_RADIUS, STEPS_PER_FRAME } from './physics.js';
+
+const NUM_SPHERES = 25; // Number of spheres to create
+const PLAYER_HEIGHT = 1.8; // Height of the player capsule
+const PLAYER_RADIUS = 0.35; // Radius of the player capsule
+const RESPAWN_HEIGHT = 200; // Height at which the player respawns
+const FALL_THRESHOLD = 20; // Height difference to trigger respawn
+const RESPAWN_DELAY = 8.0; // Delay before respawning
 
 // Global variables
 let threejsData = { objects: [] }
@@ -20,8 +32,6 @@ let textures = [];
 let clock = new THREE.Clock(); 
 let objectsData = []; 
 let selectedObjectIndex = -1; 
-let debugObjects = []; // To track debug visuals
-let debugEnabled = false;
 let currentSpeed = 10; // Normal movement speed
 let composer;
 let outlinePass;
@@ -35,6 +45,15 @@ let confirmRedirectBtn = null;
 let lastMouseX = 0;
 let lastMouseY = 0;
 const MOUSE_DEADZONE = 2; // pixels
+
+let physicsWorld;
+let avatar;
+let spheres = [];
+let sphereIdx = 0;
+let mouseTime = 0;
+let fallStartTime = null;
+let isFalling = false;
+const playerDirection = new THREE.Vector3();
 
 let screenshotTextures = [];
 const screenshotDomains = [
@@ -127,7 +146,6 @@ async function loadJSON() {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         
         const data = await response.json();
-        console.log("Loaded objects data:", data); // Debug log
         if (!data.objects) throw new Error('Missing objects array in JSON');
         return data;
     } catch (error) {
@@ -174,9 +192,47 @@ function setupLights() {
 }
 
 function setupPlayer() {
-    // Simple camera setup
-    camera.position.set(0, 2, 5);
-    camera.lookAt(0, 0, 0);
+    avatar = new Avatar(scene, RESPAWN_HEIGHT, PLAYER_HEIGHT, PLAYER_RADIUS);
+    
+    // Initialize controller immediately
+    avatar.controller = new AvatarController(); 
+}
+
+function setupSpheres() {
+    if (!physicsWorld) {
+        console.error("Physics world not initialized");
+        return;
+    }
+
+    const sphereMaterial = new THREE.MeshLambertMaterial({ color: 0xdede8d });
+
+    for (let i = 0; i < NUM_SPHERES; i++) {
+        const mesh = new THREE.Mesh(
+            new THREE.IcosahedronGeometry(SPHERE_RADIUS, 5),
+            sphereMaterial
+        );
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        scene.add(mesh);
+
+        const sphere = createPhysicsSphere(mesh, SPHERE_RADIUS, new THREE.Vector3(0, -100, 0));
+        physicsWorld.addSphere(sphere);
+        spheres.push(sphere);
+    }
+}
+
+function throwBall() {
+    const sphere = spheres[sphereIdx];
+    camera.getWorldDirection(avatar.direction);
+
+    sphere.collider.center.copy(avatar.collider.end)
+        .addScaledVector(avatar.direction, avatar.collider.radius * 1.5);
+
+    const impulse = 15 + 30 * (1 - Math.exp((mouseTime - performance.now()) * 0.001));
+    sphere.velocity.copy(avatar.direction).multiplyScalar(impulse);
+    sphere.velocity.addScaledVector(avatar.velocity, 2);
+
+    sphereIdx = (sphereIdx + 1) % spheres.length;
 }
 
 // Sets up the teleport button click handler to move the player to the selected object's position.
@@ -190,30 +246,52 @@ function setupTeleportButton() {
     }
     
     teleportBtn.onclick = function() {
+        console.log("Teleport button clicked");
+        console.log("Selected object index:", selectedObjectIndex);
+
         if (selectedObjectIndex === -1) {
-            console.log("No object selected");
+            console.log("No object selected for teleport");
             return;
         }
         
         const objData = objectsData.objects[selectedObjectIndex];
         if (!objData) {
-            console.log("Selected object data not found");
+            console.error("Selected object data not found");
             return;
         }
         
         if (!objData.position) {
-            console.log("Selected object has no position data");
+            console.error("Selected object has no position data");
             return;
         }
         
-        // Teleport camera to object position
-        camera.position.set(
-            objData.position[0] || 0,
-            (objData.position[1] || 0) + 2, // 2 units above the object
-            objData.position[2] || 0
-        );
+        console.log("Teleporting to:", objData.position);
         
-        console.log("Teleported camera to:", camera.position);
+        // Teleport player to object position
+        const targetX = objData.position[0] || 0;
+        const targetY = (objData.position[1] || 0) + avatar.playerRadius; // Start at feet level + radius
+        const targetZ = objData.position[2] || 0;
+        
+        // Update physics capsule
+        avatar.collider.start.set(targetX, targetY, targetZ);
+        avatar.collider.end.set(targetX, targetY + (avatar.playerHeight - 2 * avatar.playerRadius), targetZ);
+        
+        // Update character position
+        if (avatar.character) {
+            avatar.character.position.set(targetX, targetY - avatar.playerRadius, targetZ);
+        }
+        
+        // Update the respawn height to match the teleported position
+        avatar.setRespawnHeight(targetY);
+        
+        // Reset physics state
+        avatar.velocity.set(0, 0, 0);
+        avatar.onFloor = true;
+        
+        // Update camera
+        if (avatar.cameraMode === 'thirdPerson') {
+            avatar.resetThirdPersonCamera(camera);
+        }
     };
 }
 
@@ -243,12 +321,6 @@ function createObjectListWindow() {
     teleportBtn.textContent = 'GO!';
     header.appendChild(teleportBtn);
 
-    // Create close button
-    const closeBtn = document.createElement('button');
-    closeBtn.id = 'object-list-close';
-    closeBtn.textContent = 'Close';
-    header.appendChild(closeBtn);
-
     container.appendChild(header);
 
     // Create scrollable content section
@@ -271,16 +343,18 @@ function createObjectListWindow() {
 // Only updates if objectsData is available.
 function updateObjectList() {
     const listElement = document.getElementById('object-list-items');
-    // Clear existing items
     if (!listElement) {
         console.error("List element not found");
         return;
     }
+    
     // Check if objectsData is available
-    if (!objectsData.objects) {
+    if (!objectsData || !objectsData.objects) {
         console.error("No objects data available");
         return;
     }
+    
+    console.log("Updating object list with", objectsData.objects.length, "objects");
     
     listElement.innerHTML = '';
     // Create object items
@@ -393,10 +467,30 @@ function animate() {
     if (stats) stats.begin();
     // Cap deltaTime to avoid large jumps
     const deltaTime = Math.min(0.05, clock.getDelta());
+    const physicsDeltaTime = deltaTime / STEPS_PER_FRAME;
     
     // Skip updates when tab is not visible
     if (!document.hidden) {
-        controls(deltaTime);
+        // Physics updates (using subdivided time)
+        if (physicsWorld) {
+            for (let i = 0; i < STEPS_PER_FRAME; i++) {
+                controls(physicsDeltaTime);
+                updatePlayer(physicsDeltaTime);
+                physicsWorld.update(physicsDeltaTime, avatar);
+                teleportPlayerIfOob();
+            }
+        }
+
+        // Animation updates (using full frame time)
+        if (avatar.mixer) {
+            avatar.mixer.update(deltaTime);
+        }
+
+        // Camera updates - always use third-person
+        if (avatar.character) {
+            avatar.updateThirdPersonCamera(camera);
+        }
+
         composer.render(scene, camera);
     }
     
@@ -407,36 +501,182 @@ function animate() {
 // Translates keyboard states into movement vectors and animations,
 // handling jumping, camera-relative movement, and animation transitions.
 // Uses deltaTime for frame-rate independent behavior.
+// In main.js, update the controls function to ensure jump physics is applied:
 function controls(deltaTime) {
-    // Set speed based on Shift key
-    currentSpeed = keyStates['ShiftLeft'] ? RUN_SPEED : WALK_SPEED;
-    const moveSpeed = currentSpeed * deltaTime;
+    if (!avatar || !avatar.controller) return;
+
+    let currentAzimuth;
+    if (avatar.cameraMode === 'thirdPerson') {
+        currentAzimuth = avatar.cameraAzimuth;
+    } else {
+        currentAzimuth = camera.rotation.y;
+    }
+
+    const { moveVector, animation } = avatar.controller.update(deltaTime, keyStates, currentAzimuth);
     
-    if (keyStates['KeyW']) {
-        camera.translateZ(-moveSpeed);
+    // Apply movement regardless of jump state
+    avatar.velocity.x = moveVector.x;
+    avatar.velocity.z = moveVector.z;
+    
+    // Handle jump input - only allow if not currently jumping or forcing completion
+    if (keyStates['Space'] && avatar.onFloor && !avatar.isJumping && !avatar.forceJumpCompletion) {
+        if (avatar.jump()) {
+            console.log("Jump successful");
+            return;
+        } else {
+            console.log("Jump failed");
+        }
     }
-    if (keyStates['KeyS']) {
-        camera.translateZ(moveSpeed);
-    }
-    if (keyStates['KeyA']) {
-        camera.translateX(-moveSpeed);
-    }
-    if (keyStates['KeyD']) {
-        camera.translateX(moveSpeed);
-    }
-    if (keyStates['KeyE']) { // Use E for ascending
-        camera.position.y += moveSpeed;
-    }
-    if (keyStates['KeyQ']) { // Use Q for descending
-        camera.position.y -= moveSpeed;
+    
+    // Only set ground animations when on floor and not jumping or forcing jump completion
+    if (avatar.onFloor && !avatar.isJumping && !avatar.forceJumpCompletion) {
+        avatar.setAnimation(animation);
     }
 }
 
+    function updatePlayer(deltaTime) {
+        // Remove the atRespawnHeight check that forces onFloor=true
+        // This was preventing gravity from working
+        
+        // Store the capsule position BEFORE moving it
+        const oldCapsulePosition = new THREE.Vector3().copy(avatar.collider.start);
+        
+        // Apply gravity if not on floor
+        if (!avatar.onFloor) {
+            avatar.velocity.y -= GRAVITY * deltaTime;
+        }
+        
+        // Move the player
+        const deltaPosition = avatar.velocity.clone().multiplyScalar(deltaTime);
+        avatar.collider.translate(deltaPosition);
+        
+        // Handle collisions - this will set onFloor appropriately
+        physicsWorld.playerCollisions(avatar);
+        
+        // Calculate the actual movement that occurred (after collisions)
+        const actualMovement = new THREE.Vector3().subVectors(avatar.collider.start, oldCapsulePosition);
+        
+        // Update character model position to match the capsule - FIXED
+        if (avatar.character) {
+            // Position character so feet are at floor level
+            avatar.character.position.copy(avatar.collider.start);
+            avatar.character.position.y -= avatar.playerRadius; // Move down to floor level
+        }
+        
+        // Don't override jump animation while jumping or forcing completion
+        if (avatar.isJumping || avatar.forceJumpCompletion) {
+            // Keep jump animation playing - but still allow movement and physics
+        }
+        
+        // Handle falling animation (only if not forcing jump completion)
+        if (!avatar.onFloor && !avatar.forceJumpCompletion) {
+            avatar.setAnimation('jump');
+        } else if (!avatar.forceJumpCompletion) {
+            // Only set ground animations when on floor and not forcing jump
+            const horizontalVelocity = new THREE.Vector2(avatar.velocity.x, avatar.velocity.z).length();
+            if (horizontalVelocity > 8) {
+                avatar.setAnimation('run');
+            } else if (horizontalVelocity > 0.1) {
+                avatar.setAnimation('walk');
+            } else {
+                avatar.setAnimation('idle');
+            }
+        }
+
+        avatar.update(deltaTime);
+    }
+
+function teleportPlayerIfOob() {
+    const currentTime = clock.getElapsedTime();
+    
+    // Use the avatar's current respawn height instead of the global constant
+    const threshold = avatar.respawnHeight - FALL_THRESHOLD;
+    
+    // Use only third-person check
+    if (avatar.collider.start.y <= threshold) {
+        if (!isFalling) {
+            isFalling = true;
+            fallStartTime = currentTime;
+        }
+        
+        if (currentTime - fallStartTime >= RESPAWN_DELAY) {
+            resetPlayerPosition();
+            isFalling = false;
+        }
+    } else {
+        isFalling = false;
+    }
+}
+
+function resetPlayerPosition() {
+    // Use the avatar's current respawn height
+    avatar.collider.start.set(0, avatar.respawnHeight + avatar.playerRadius, 0);
+    avatar.collider.end.set(0, avatar.respawnHeight + avatar.playerHeight - avatar.playerRadius, 0);
+    
+    // Position character to match capsule - FIXED
+    if (avatar.character) {
+        // Position character so feet are at floor level
+        avatar.character.position.copy(avatar.collider.start);
+        avatar.character.position.y -= avatar.playerRadius; // Move down to floor level
+    }
+    
+    // Reset physics state
+    avatar.velocity.set(0, 0, 0);
+    avatar.onFloor = true;
+    avatar.isJumping = false;
+    avatar.forceJumpCompletion = false;
+    
+    avatar.setAnimation('idle');
+    
+    // Always use third-person camera
+    avatar.resetThirdPersonCamera(camera);
+}
+
+// Remove the toggleCameraMode function completely or replace it with:
+function toggleCameraMode() {
+    // Always use third-person mode
+    avatar.cameraMode = 'thirdPerson';
+    avatar.resetThirdPersonCamera(camera);
+    
+    // Make character visible
+    if (avatar.character) {
+        avatar.character.visible = true;
+    }
+}
+
+function resetThirdPersonCamera() {
+    if (!avatar.character) return;
+    
+    avatar.cameraDistance = 5;
+    avatar.cameraHeight = 1.5;
+    avatar.cameraAzimuth = avatar.character.rotation.y + Math.PI;
+    avatar.cameraPolar = Math.PI / 3;
+    
+    const spherical = new THREE.Spherical();
+    spherical.radius = avatar.cameraDistance;
+    spherical.phi = avatar.cameraPolar;
+    spherical.theta = avatar.cameraAzimuth;
+
+    const offset = new THREE.Vector3();
+    offset.setFromSpherical(spherical);
+
+    avatar.cameraTarget.copy(avatar.character.position);
+    avatar.cameraTarget.y += avatar.cameraHeight;
+    
+    camera.position.copy(avatar.cameraTarget).add(offset);
+    camera.lookAt(avatar.cameraTarget);
+}
+
+
 document.body.addEventListener('mousemove', (event) => {
     if (document.pointerLockElement === document.body) {
-        camera.rotation.y -= event.movementX / 500;
-        camera.rotation.x -= event.movementY / 500;
-        camera.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, camera.rotation.x));
+        // Only handle third-person camera control
+        avatar.cameraAzimuth -= event.movementX / 500;
+        avatar.cameraPolar = THREE.MathUtils.clamp(
+            avatar.cameraPolar - (event.movementY / 500),
+            0.1,  // Min angle
+            Math.PI - 0.1  // Max angle
+        );
     }
 });
 
@@ -501,15 +741,24 @@ function setupEventListeners() {
             document.body.style.cursor = 'auto';
             return;
         }
-        if (event.code === 'KeyP') { // Add P key for debug toggle
-            debugEnabled = !debugEnabled;
-            console.log(`Debug mode ${debugEnabled ? 'enabled' : 'disabled'}`);
-        }
+        
+        // if (event.code === 'KeyV') toggleCameraMode();
         keyStates[event.code] = true;
+        
     });
 
     document.addEventListener('keyup', (event) => {
         keyStates[event.code] = false;
+    });
+
+    // Mouse down event to request pointer lock
+    container.addEventListener('mousedown', () => {
+        document.body.requestPointerLock();
+        mouseTime = performance.now();
+    });
+    // Mouse up event to release pointer lock
+    document.addEventListener('mouseup', () => {
+        if (document.pointerLockElement !== null) throwBall();
     });
 
     // Handle pointer lock change
@@ -780,6 +1029,20 @@ function resetHighlightEffect() {
     highlightedObject = null;
 }
 
+// Add this to your main.js for testing
+function testCapsuleAlignment() {
+    if (avatar && avatar.verifyCapsuleAlignment) {
+        const isAligned = avatar.verifyCapsuleAlignment();
+        
+        if (avatar.debugCapsuleMesh) {
+        }
+    }
+}
+
+// Call this after initialization and periodically to verify
+setTimeout(testCapsuleAlignment, 1000);
+//setInterval(testCapsuleAlignment, 5000); // Check every 5 seconds
+
 // Loads screenshot textures from predefined domains
 async function loadScreenshotTextures() {
   const textureLoader = new THREE.TextureLoader();
@@ -845,7 +1108,6 @@ async function loadScreenshotTextures() {
   
   // Hide loading overlay when done
   loadingOverlay.style.display = 'none';
-  console.log(`Loaded ${screenshotTextures.length} screenshot textures`);
 }
 
 // Main initialization function that sets up the entire Three.js application:
@@ -855,7 +1117,6 @@ async function loadScreenshotTextures() {
 // 4. Configures lighting and world geometry
 // 5. Starts the animation loop
 async function init() {
-    debugEnabled = true; // Set to false once debugging is done
     try {
         // Create and configure stats FIRST
         stats = new Stats();
@@ -867,14 +1128,32 @@ async function init() {
         // Create basic Three.js components
         scene = new THREE.Scene();
         //scene.background = new THREE.Color(0x88ccee);
-        scene.fog = new THREE.Fog(0xfffae6, 0, 200); //color, near, far
+        scene.fog = new THREE.Fog(0xfffae6, 0, 750); //color, near, far
 
         // Camera setup - position it at the player's head
-        camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 300);
+        camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 500);
         camera.rotation.order = 'YXZ';
+
+        // Initialize physics world FIRST
+        physicsWorld = new PhysicsWorld(scene);
         
-        // Setup player
+        // Setup player and load character
         setupPlayer();
+        await avatar.loadCharacter('./src/models/Cubetonian_250825.glb');
+        avatar.clock = clock;
+
+        // Set to third-person mode explicitly
+        avatar.cameraMode = 'thirdPerson';
+        avatar.resetThirdPersonCamera(camera);
+
+        // Debug capsule
+        avatar.debugCapsule();
+
+        // Reset state after character is loaded
+        avatar.resetState();
+
+        // Setup spheres (now physicsWorld is initialized)
+        setupSpheres();
 
         renderer = new THREE.WebGLRenderer({
             antialias: true,
@@ -1101,12 +1380,23 @@ async function init() {
             worldObjects.add(mesh);
         });
 
+        // Update physics world with the created objects
+        physicsWorld.initWorld(worldObjects);
+
         // Add world to scene
         scene.add(worldObjects);
         worldOctree.fromGraphNode(worldObjects);
 
+        // Setup spheres
+        setupSpheres();
+
         // Setup lights
         setupLights();
+
+        // Set initial camera position
+        if (avatar.character) {
+            avatar.updateThirdPersonCamera(camera);
+        }
 
         // Setup event listeners
         setupEventListeners();
@@ -1143,4 +1433,37 @@ async function init() {
         animate();
     }
 }
+
+function cleanup() {
+    // Check if worldObjects exists and has children before trying to traverse it
+    if (!worldObjects || !worldObjects.children) return;
+    
+    // Dispose geometries, materials
+    worldObjects.traverse(child => {
+        if (child.isMesh) {
+            if (child.geometry) child.geometry.dispose();
+            if (child.material) {
+                if (Array.isArray(child.material)) {
+                    child.material.forEach(m => m && m.dispose());
+                } else {
+                    child.material.dispose();
+                }
+            }
+        }
+    });
+    
+    // Cleanup physics
+    if (physicsWorld && typeof physicsWorld.cleanup === 'function') {
+        physicsWorld.cleanup();
+    }
+    
+    // Cleanup avatar animations
+    if (avatar && typeof avatar.cleanup === 'function') {
+        avatar.cleanup();
+    }
+}
+
+// Call on window unload
+window.addEventListener('beforeunload', cleanup);
+
 init();

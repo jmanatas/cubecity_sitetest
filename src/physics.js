@@ -94,33 +94,43 @@ export class PhysicsWorld {
         }
     }
 
-    // Player-sphere collision detection
-    playerSphereCollision(player, sphere) {
-        const center = vector1.addVectors(player.collider.start, player.collider.end).multiplyScalar(0.5);
-        const sphere_center = sphere.collider.center;
-        const r = player.collider.radius + sphere.collider.radius;
-        const r2 = r * r;
+// Player-sphere collision detection
+playerSphereCollision(player, sphere) {
+    const center = vector1.addVectors(player.collider.start, player.collider.end).multiplyScalar(0.5);
+    const sphere_center = sphere.collider.center;
+    const r = player.collider.radius + sphere.collider.radius;
+    const r2 = r * r;
 
-        for (const point of [player.collider.start, player.collider.end, center]) {
-            const d2 = point.distanceToSquared(sphere_center);
+    // Check collision with capsule start, end, and center points
+    for (const point of [player.collider.start, player.collider.end, center]) {
+        const d2 = point.distanceToSquared(sphere_center);
 
-            if (d2 < r2) {
-                const normal = vector1.subVectors(point, sphere_center).normalize();
-                const v1 = vector2.copy(normal).multiplyScalar(normal.dot(player.velocity));
-                const v2 = vector3.copy(normal).multiplyScalar(normal.dot(sphere.velocity));
+        if (d2 < r2) {
+            const normal = vector1.subVectors(point, sphere_center).normalize();
+            const v1 = vector2.copy(normal).multiplyScalar(normal.dot(player.velocity));
+            const v2 = vector3.copy(normal).multiplyScalar(normal.dot(sphere.velocity));
 
-                player.velocity.add(v2).sub(v1);
-                sphere.velocity.add(v1).sub(v2);
+            player.velocity.add(v2).sub(v1);
+            sphere.velocity.add(v1).sub(v2);
 
-                const d = (r - Math.sqrt(d2)) / 2;
-                sphere_center.addScaledVector(normal, -d);
-            }
+            const d = (r - Math.sqrt(d2)) / 2;
+            
+            // Move BOTH the sphere AND the player capsule
+            sphere_center.addScaledVector(normal, -d);
+            
+            // Also move the player capsule away from the sphere
+            player.collider.start.addScaledVector(normal, d * 0.5);
+            player.collider.end.addScaledVector(normal, d * 0.5);
         }
     }
+}
 
-    // Update all physics objects
+// Update all physics objects
     update(deltaTime, player) {
-        // Update spheres
+        // First handle player collisions with world
+        this.playerCollisions(player);
+        
+        // Then update spheres
         this.spheres.forEach(sphere => {
             sphere.collider.center.addScaledVector(sphere.velocity, deltaTime);
             const result = this.worldOctree.sphereIntersect(sphere.collider);
@@ -134,6 +144,8 @@ export class PhysicsWorld {
 
             const damping = Math.exp(-1.5 * deltaTime) - 1;
             sphere.velocity.addScaledVector(sphere.velocity, damping);
+            
+            // Handle player-sphere collisions
             this.playerSphereCollision(player, sphere);
         });
 
@@ -144,6 +156,7 @@ export class PhysicsWorld {
             sphere.mesh.position.copy(sphere.collider.center);
         }
     }
+
 }
 
 // Helper function to create a physics sphere
