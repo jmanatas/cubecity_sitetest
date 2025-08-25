@@ -1,7 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.162.0/build/three.module.js';
 import { Capsule } from 'https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/math/Capsule.js';
 import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/loaders/GLTFLoader.js';
-import { AvatarController } from './avatarController.js';
+import { AvatarController } from 'https://jmanatas.github.io/cubecity_sitetest/avatarController.js';
 
 export class Avatar {
     constructor(scene, respawnHeight, playerHeight, playerRadius) {
