@@ -1,5 +1,5 @@
 // avatarController.js
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.162.0/build/three.module.js';
+import * as THREE from 'https://cdn.skypack.dev/three@0.162.0';
 
 export class AvatarController {
     constructor(character) {
