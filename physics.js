@@ -2,7 +2,8 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.162.0/build/three.module.js';
 import { Octree } from 'https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/math/Octree.js';
 import { OctreeHelper } from 'https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/helpers/OctreeHelper.js';
-import { Capsule } from 'three/examples/jsm/math/Capsule.js';import { Capsule } from 'https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/math/Capsule.js';
+import { Capsule } from 'https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/math/Capsule.js';
+
 // Physics constants
 export const GRAVITY = 30;
 export const SPHERE_RADIUS = 0.2;
