@@ -25,7 +25,6 @@ export async function loadTextures() {
             texture.encoding = THREE.sRGBEncoding;
             
             textures.push(texture);
-            console.log(`Loaded texture: ${screenshotUrl}`);
         } catch (error) {
             console.warn(`Failed to load random screenshot:`, error);
             // Fallback: Use a default texture if loading fails
