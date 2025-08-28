@@ -37,35 +37,18 @@
         </div>
     </div>
     
-    <!-- Load Three.js as a regular script -->
+    <!-- Load Three.js and its examples as UMD scripts -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.176.0/build/three.min.js"></script>
-    
-    <!-- Load Three.js examples as modules -->
-    <script type="module">
-        // Import the Three.js examples as modules
-        import Stats from 'https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/libs/stats.module.js';
-        import { Octree } from 'https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/math/Octree.js';
-        import { RGBELoader } from 'https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/loaders/RGBELoader.js';
-        import { EffectComposer } from 'https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/postprocessing/EffectComposer.js';
-        import { RenderPass } from 'https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/postprocessing/RenderPass.js';
-        import { OutlinePass } from 'https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/postprocessing/OutlinePass.js';
-        import { ShaderPass } from 'https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/postprocessing/ShaderPass.js';
-        import { FXAAShader } from 'https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/shaders/FXAAShader.js';
-        import { Capsule } from 'https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/math/Capsule.js';
-        import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/loaders/GLTFLoader.js';
-        
-        // Make them globally available so your main.js can access them
-        window.Stats = Stats;
-        window.Octree = Octree;
-        window.RGBELoader = RGBELoader;
-        window.EffectComposer = EffectComposer;
-        window.RenderPass = RenderPass;
-        window.OutlinePass = OutlinePass;
-        window.ShaderPass = ShaderPass;
-        window.FXAAShader = FXAAShader;
-        window.Capsule = Capsule;
-        window.GLTFLoader = GLTFLoader;
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/libs/stats.module.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/math/Octree.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/loaders/RGBELoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/postprocessing/OutlinePass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/shaders/FXAAShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/math/Capsule.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/loaders/GLTFLoader.js"></script>
     
     <script type="module" src="./assets/index-7iU4_QKe.js"></script>
 </body>
