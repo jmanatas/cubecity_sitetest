@@ -1,0 +1,97 @@
+{
+  "hash": "4f460994",
+  "configHash": "edcd6362",
+  "lockfileHash": "1c66142e",
+  "browserHash": "86fc3252",
+  "optimized": {
+    "three": {
+      "src": "../../node_modules/three/build/three.module.js",
+      "file": "three.js",
+      "fileHash": "89097535",
+      "needsInterop": false
+    },
+    "three/examples/jsm/libs/stats.module.js": {
+      "src": "../../node_modules/three/examples/jsm/libs/stats.module.js",
+      "file": "three_examples_jsm_libs_stats__module__js.js",
+      "fileHash": "55af6051",
+      "needsInterop": false
+    },
+    "three/examples/jsm/math/Octree.js": {
+      "src": "../../node_modules/three/examples/jsm/math/Octree.js",
+      "file": "three_examples_jsm_math_Octree__js.js",
+      "fileHash": "6086d992",
+      "needsInterop": false
+    },
+    "three/examples/jsm/loaders/RGBELoader.js": {
+      "src": "../../node_modules/three/examples/jsm/loaders/RGBELoader.js",
+      "file": "three_examples_jsm_loaders_RGBELoader__js.js",
+      "fileHash": "7da33994",
+      "needsInterop": false
+    },
+    "three/examples/jsm/postprocessing/EffectComposer.js": {
+      "src": "../../node_modules/three/examples/jsm/postprocessing/EffectComposer.js",
+      "file": "three_examples_jsm_postprocessing_EffectComposer__js.js",
+      "fileHash": "04f47e1a",
+      "needsInterop": false
+    },
+    "three/examples/jsm/postprocessing/RenderPass.js": {
+      "src": "../../node_modules/three/examples/jsm/postprocessing/RenderPass.js",
+      "file": "three_examples_jsm_postprocessing_RenderPass__js.js",
+      "fileHash": "c1f254ab",
+      "needsInterop": false
+    },
+    "three/examples/jsm/postprocessing/OutlinePass.js": {
+      "src": "../../node_modules/three/examples/jsm/postprocessing/OutlinePass.js",
+      "file": "three_examples_jsm_postprocessing_OutlinePass__js.js",
+      "fileHash": "efcdef05",
+      "needsInterop": false
+    },
+    "three/examples/jsm/postprocessing/ShaderPass.js": {
+      "src": "../../node_modules/three/examples/jsm/postprocessing/ShaderPass.js",
+      "file": "three_examples_jsm_postprocessing_ShaderPass__js.js",
+      "fileHash": "f838faca",
+      "needsInterop": false
+    },
+    "three/examples/jsm/shaders/FXAAShader.js": {
+      "src": "../../node_modules/three/examples/jsm/shaders/FXAAShader.js",
+      "file": "three_examples_jsm_shaders_FXAAShader__js.js",
+      "fileHash": "cdb0025f",
+      "needsInterop": false
+    },
+    "three/examples/jsm/math/Capsule.js": {
+      "src": "../../node_modules/three/examples/jsm/math/Capsule.js",
+      "file": "three_examples_jsm_math_Capsule__js.js",
+      "fileHash": "3d07e97d",
+      "needsInterop": false
+    },
+    "three/examples/jsm/loaders/GLTFLoader.js": {
+      "src": "../../node_modules/three/examples/jsm/loaders/GLTFLoader.js",
+      "file": "three_examples_jsm_loaders_GLTFLoader__js.js",
+      "fileHash": "3c553da6",
+      "needsInterop": false
+    },
+    "three/examples/jsm/helpers/OctreeHelper.js": {
+      "src": "../../node_modules/three/examples/jsm/helpers/OctreeHelper.js",
+      "file": "three_examples_jsm_helpers_OctreeHelper__js.js",
+      "fileHash": "1d9883c2",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-QFYABUXB": {
+      "file": "chunk-QFYABUXB.js"
+    },
+    "chunk-2D4GNDWB": {
+      "file": "chunk-2D4GNDWB.js"
+    },
+    "chunk-E3UZUUS4": {
+      "file": "chunk-E3UZUUS4.js"
+    },
+    "chunk-NMIQ3YBE": {
+      "file": "chunk-NMIQ3YBE.js"
+    },
+    "chunk-2HJJW66Q": {
+      "file": "chunk-2HJJW66Q.js"
+    }
+  }
+}
