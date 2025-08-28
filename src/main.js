@@ -513,7 +513,6 @@ function animate() {
 // Process jump input once per frame
 function processJumpInput() {
     if (!avatar || !avatar.controller) {
-        console.log("No avatar or controller");
         return;
     }
     
