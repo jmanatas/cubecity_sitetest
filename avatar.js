@@ -1,7 +1,6 @@
-import * as THREE from 'three';
-import { Capsule } from 'three/examples/jsm/math/Capsule.js';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { AvatarController } from './avatarController.js';
+const { THREE, Capsule, Octree, RGBELoader, EffectComposer, 
+        RenderPass, OutlinePass, ShaderPass, FXAAShader, 
+        GLTFLoader, Stats } = window;
 
 export class Avatar {
     constructor(scene, respawnHeight, playerHeight, playerRadius) {

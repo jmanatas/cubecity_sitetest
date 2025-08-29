@@ -1,4 +1,6 @@
-import * as THREE from 'three';
+const { THREE, Capsule, Octree, RGBELoader, EffectComposer, 
+        RenderPass, OutlinePass, ShaderPass, FXAAShader, 
+        GLTFLoader, Stats } = window;
 
 export async function loadTextures() {
     const textures = [];

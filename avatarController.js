@@ -1,5 +1,7 @@
 // avatarController.js
-import * as THREE from 'three';
+const { THREE, Capsule, Octree, RGBELoader, EffectComposer, 
+        RenderPass, OutlinePass, ShaderPass, FXAAShader, 
+        GLTFLoader, Stats } = window;
 
 export class AvatarController {
     constructor(character = null, avatar = null) {

@@ -1,8 +1,7 @@
 // physics.js
-import * as THREE from 'three';
-import { Octree } from 'three/examples/jsm/math/Octree.js';
-import { OctreeHelper } from 'three/examples/jsm/helpers/OctreeHelper.js'; // Add this import
-import { Capsule } from 'three/examples/jsm/math/Capsule.js';
+const { THREE, Capsule, Octree, RGBELoader, EffectComposer, 
+        RenderPass, OutlinePass, ShaderPass, FXAAShader, 
+        GLTFLoader, Stats } = window;
 
 // Physics constants
 export const GRAVITY = 30;
