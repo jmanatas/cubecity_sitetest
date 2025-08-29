@@ -8,7 +8,7 @@ import { OutlinePass } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples
 import { ShaderPass } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/postprocessing/ShaderPass.js';
 import { FXAAShader } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/shaders/FXAAShader.js';
 import { Capsule } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/math/Capsule.js';
-import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/loaders/GLLoader.js';
+import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/loaders/GLTFLoader.js';
 
 const NUM_SPHERES = 25; // Number of spheres to create
 const PLAYER_HEIGHT = 1.8; // Height of the player capsule
