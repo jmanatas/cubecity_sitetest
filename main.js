@@ -1,8 +1,3 @@
-
-const { THREE, Capsule, Octree, RGBELoader, EffectComposer, 
-        RenderPass, OutlinePass, ShaderPass, FXAAShader, 
-        GLTFLoader, Stats } = window;
-
 const NUM_SPHERES = 25; // Number of spheres to create
 const PLAYER_HEIGHT = 1.8; // Height of the player capsule
 const PLAYER_RADIUS = 0.35; // Radius of the player capsule
@@ -1494,4 +1489,15 @@ function cleanup() {
 // Call on window unload
 window.addEventListener('beforeunload', cleanup);
 
-init();
+// Wrap your entire init() call in a DOMContentLoaded event listener
+document.addEventListener('DOMContentLoaded', function() {
+    // This ensures the DOM is fully loaded before running your code
+    init().catch(error => {
+        console.error('Initialization failed:', error);
+        // Show error to user
+        const loadingOverlay = document.getElementById('loading-overlay');
+        if (loadingOverlay) {
+            loadingOverlay.innerHTML = '<h2>Error Loading Application</h2><p>Please check console for details.</p>';
+        }
+    });
+});

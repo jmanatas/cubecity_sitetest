@@ -1,8 +1,5 @@
-const { THREE, Capsule, Octree, RGBELoader, EffectComposer, 
-        RenderPass, OutlinePass, ShaderPass, FXAAShader, 
-        GLTFLoader, Stats } = window;
-
-export class Avatar {
+// avatar.js - Non-module version
+class Avatar {
     constructor(scene, respawnHeight, playerHeight, playerRadius) {
         this.scene = scene;
         this.respawnHeight = respawnHeight;
@@ -10,7 +7,7 @@ export class Avatar {
         this.playerRadius = playerRadius || 0.4;
         this.avatarFeetOffset = 0;
 
-        this.isJumping = false; // initialize isJumping property
+        this.isJumping = false;
         this.gravityEnabled = true;
         
         // Player physics
@@ -50,8 +47,6 @@ export class Avatar {
         this.cameraPolar = Math.PI / 3;
         
         this.controller = null;
-        
-        // REMOVED resetState() call from constructor
     }
 
     // Jump the avatar
@@ -60,8 +55,6 @@ export class Avatar {
             return false;
         }
 
-        if (!this.onFloor || this.isJumping) return false;
-        
         this.velocity.y = 15; // Jump impulse
         this.onFloor = false;
         this.isJumping = true;
@@ -85,17 +78,10 @@ export class Avatar {
         return true;
     }
 
-        resetState() {
-            this.velocity.set(0, 0, 0);
-            this.isJumping = false;
-            // DON'T set onFloor to true here - keep it false so avatar falls
-            // this.onFloor = true; // REMOVE THIS LINE
-            
-            // Only set animation if animations are loaded
-            if (this.animationActions && this.animationActions.idle) {
-                this.setAnimation('idle');
-            }
-        }
+    resetState() {
+        this.velocity.set(0, 0, 0);
+        this.isJumping = false;
+    }
 
     async loadCharacter(modelPath) {
         const loader = new GLTFLoader();
@@ -117,7 +103,7 @@ export class Avatar {
                 this.animationActions.walk = this.mixer.clipAction(this.findAnimation('walk'));
                 this.animationActions.run = this.mixer.clipAction(this.findAnimation('run'));
                 this.animationActions.jump = this.mixer.clipAction(this.findAnimation('jump'));
-                this.animationActions.fly = this.mixer.clipAction(this.findAnimation('fly')); // Add fly
+                this.animationActions.fly = this.mixer.clipAction(this.findAnimation('fly'));
                 
                 Object.values(this.animationActions).forEach(action => {
                     if (action) action.setLoop(THREE.LoopRepeat, Infinity);
@@ -262,12 +248,6 @@ export class Avatar {
         
         camera.position.copy(this.cameraTarget).add(offset);
         camera.lookAt(this.cameraTarget);
-    }
-
-    resetState() {
-        this.onFloor = true;
-        this.velocity.set(0, 0, 0);
-        this.setAnimation('idle');
     }
 
     debugCapsule() {

@@ -1,9 +1,5 @@
-// avatarController.js
-const { THREE, Capsule, Octree, RGBELoader, EffectComposer, 
-        RenderPass, OutlinePass, ShaderPass, FXAAShader, 
-        GLTFLoader, Stats } = window;
-
-export class AvatarController {
+// avatarController.js - Non-module version
+class AvatarController {
     constructor(character = null, avatar = null) {
         this.character = character;
         this.avatar = avatar;
@@ -13,7 +9,6 @@ export class AvatarController {
             walkVelocity: 1.5,
             runVelocity: 5.5,
         };
-        // REMOVE the local animation variable - it's not needed here
     }
 
     update(delta, keyStates, cameraAzimuth) {

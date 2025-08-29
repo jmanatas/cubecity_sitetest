@@ -1,19 +1,14 @@
-// physics.js
-const { THREE, Capsule, Octree, RGBELoader, EffectComposer, 
-        RenderPass, OutlinePass, ShaderPass, FXAAShader, 
-        GLTFLoader, Stats } = window;
-
-// Physics constants
-export const GRAVITY = 30;
-export const SPHERE_RADIUS = 0.2;
-export const STEPS_PER_FRAME = 5;
+// physics.js - Non-module version
+const GRAVITY = 30;
+const SPHERE_RADIUS = 0.2;
+const STEPS_PER_FRAME = 5;
 
 // Reusable vectors for physics calculations
-export const vector1 = new THREE.Vector3();
-export const vector2 = new THREE.Vector3();
-export const vector3 = new THREE.Vector3();
+const vector1 = new THREE.Vector3();
+const vector2 = new THREE.Vector3();
+const vector3 = new THREE.Vector3();
 
-export class PhysicsWorld {
+class PhysicsWorld {
     constructor(scene) {
         this.scene = scene;
         this.worldOctree = new Octree();
@@ -105,38 +100,38 @@ export class PhysicsWorld {
         }
     }
 
-// Player-sphere collision detection
-playerSphereCollision(player, sphere) {
-    const center = vector1.addVectors(player.collider.start, player.collider.end).multiplyScalar(0.5);
-    const sphere_center = sphere.collider.center;
-    const r = player.collider.radius + sphere.collider.radius;
-    const r2 = r * r;
+    // Player-sphere collision detection
+    playerSphereCollision(player, sphere) {
+        const center = vector1.addVectors(player.collider.start, player.collider.end).multiplyScalar(0.5);
+        const sphere_center = sphere.collider.center;
+        const r = player.collider.radius + sphere.collider.radius;
+        const r2 = r * r;
 
-    // Check collision with capsule start, end, and center points
-    for (const point of [player.collider.start, player.collider.end, center]) {
-        const d2 = point.distanceToSquared(sphere_center);
+        // Check collision with capsule start, end, and center points
+        for (const point of [player.collider.start, player.collider.end, center]) {
+            const d2 = point.distanceToSquared(sphere_center);
 
-        if (d2 < r2) {
-            const normal = vector1.subVectors(point, sphere_center).normalize();
-            const v1 = vector2.copy(normal).multiplyScalar(normal.dot(player.velocity));
-            const v2 = vector3.copy(normal).multiplyScalar(normal.dot(sphere.velocity));
+            if (d2 < r2) {
+                const normal = vector1.subVectors(point, sphere_center).normalize();
+                const v1 = vector2.copy(normal).multiplyScalar(normal.dot(player.velocity));
+                const v2 = vector3.copy(normal).multiplyScalar(normal.dot(sphere.velocity));
 
-            player.velocity.add(v2).sub(v1);
-            sphere.velocity.add(v1).sub(v2);
+                player.velocity.add(v2).sub(v1);
+                sphere.velocity.add(v1).sub(v2);
 
-            const d = (r - Math.sqrt(d2)) / 2;
-            
-            // Move BOTH the sphere AND the player capsule
-            sphere_center.addScaledVector(normal, -d);
-            
-            // Also move the player capsule away from the sphere
-            player.collider.start.addScaledVector(normal, d * 0.5);
-            player.collider.end.addScaledVector(normal, d * 0.5);
+                const d = (r - Math.sqrt(d2)) / 2;
+                
+                // Move BOTH the sphere AND the player capsule
+                sphere_center.addScaledVector(normal, -d);
+                
+                // Also move the player capsule away from the sphere
+                player.collider.start.addScaledVector(normal, d * 0.5);
+                player.collider.end.addScaledVector(normal, d * 0.5);
+            }
         }
     }
-}
 
-// Update all physics objects
+    // Update all physics objects
     update(deltaTime, player) {
         // First handle player collisions with world
         this.playerCollisions(player);
@@ -167,11 +162,10 @@ playerSphereCollision(player, sphere) {
             sphere.mesh.position.copy(sphere.collider.center);
         }
     }
-
 }
 
 // Helper function to create a physics sphere
-export function createPhysicsSphere(mesh, radius, position) {
+function createPhysicsSphere(mesh, radius, position) {
     return {
         mesh: mesh,
         collider: new THREE.Sphere(position || new THREE.Vector3(0, -100, 0), radius || SPHERE_RADIUS),
