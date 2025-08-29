@@ -4,6 +4,37 @@
     <title>three.js - misc - octree collisions</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+
+    <script type="module">
+        // Import everything we need from Three.js
+        import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.module.js';
+        import { Octree } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/math/Octree.js';
+        import { OctreeHelper } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/helpers/OctreeHelper.js';
+        import { Capsule } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/math/Capsule.js';
+        import Stats from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/libs/stats.module.js';
+        import { RGBELoader } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/loaders/RGBELoader.js';
+        import { EffectComposer } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/postprocessing/RenderPass.js';
+        import { OutlinePass } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/postprocessing/OutlinePass.js';
+        import { ShaderPass } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/postprocessing/ShaderPass.js';
+        import { FXAAShader } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/shaders/FXAAShader.js';
+        import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/loaders/GLTFLoader.js';
+
+        // Make them globally available
+        window.THREE = THREE;
+        window.Stats = Stats;
+        window.Octree = Octree;
+        window.OctreeHelper = OctreeHelper;
+        window.Capsule = Capsule;
+        window.RGBELoader = RGBELoader;
+        window.EffectComposer = EffectComposer;
+        window.RenderPass = RenderPass;
+        window.OutlinePass = OutlinePass;
+        window.ShaderPass = ShaderPass;
+        window.FXAAShader = FXAAShader;
+        window.GLTFLoader = GLTFLoader;
+    </script>
+
     <style>
         body {
             margin: 0;
@@ -464,36 +495,6 @@
             </div>
         </div>
     </div>
-    
-    <script type="module">
-    // Import everything we need from Three.js
-    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.module.js';
-    import { Octree } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/math/Octree.js';
-    import { OctreeHelper } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/helpers/OctreeHelper.js';
-    import { Capsule } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/math/Capsule.js';
-    import Stats from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/libs/stats.module.js';
-    import { RGBELoader } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/loaders/RGBELoader.js';
-    import { EffectComposer } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/postprocessing/EffectComposer.js';
-    import { RenderPass } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/postprocessing/RenderPass.js';
-    import { OutlinePass } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/postprocessing/OutlinePass.js';
-    import { ShaderPass } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/postprocessing/ShaderPass.js';
-    import { FXAAShader } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/shaders/FXAAShader.js';
-    import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/loaders/GLTFLoader.js';
-
-    // Make them globally available
-    window.THREE = THREE;
-    window.Stats = Stats;
-    window.Octree = Octree;
-    window.OctreeHelper = OctreeHelper;
-    window.Capsule = Capsule;
-    window.RGBELoader = RGBELoader;
-    window.EffectComposer = EffectComposer;
-    window.RenderPass = RenderPass;
-    window.OutlinePass = OutlinePass;
-    window.ShaderPass = ShaderPass;
-    window.FXAAShader = FXAAShader;
-    window.GLTFLoader = GLTFLoader;
-    </script>
 
     <script>
         // avatarController.js content
