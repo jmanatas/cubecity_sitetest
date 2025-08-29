@@ -1,6 +1,7 @@
 import * as THREE from 'https://esm.sh/three@0.132.2';
 import Stats from 'https://esm.sh/three@0.132.2/examples/jsm/libs/stats.module.js';
 import { Octree } from 'https://esm.sh/three@0.132.2/examples/jsm/math/Octree.js';
+import { OctreeHelper } from 'https://esm.sh/three@0.132.2/examples/jsm/helpers/OctreeHelper.js';
 import { RGBELoader } from 'https://esm.sh/three@0.132.2/examples/jsm/loaders/RGBELoader.js';
 import { EffectComposer } from 'https://esm.sh/three@0.132.2/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'https://esm.sh/three@0.132.2/examples/jsm/postprocessing/RenderPass.js';

@@ -1,8 +1,10 @@
 import * as THREE from 'https://esm.sh/three@0.132.2';
+import { Octree } from 'https://esm.sh/three@0.132.2/examples/jsm/math/Octree.js';
+import { OctreeHelper } from 'https://esm.sh/three@0.132.2/examples/jsm/helpers/OctreeHelper.js';
 
-const GRAVITY = 30;
-const SPHERE_RADIUS = 0.2;
-const STEPS_PER_FRAME = 5;
+export const GRAVITY = 30;
+export const SPHERE_RADIUS = 0.2;
+export const STEPS_PER_FRAME = 5;
 
 // Reusable vectors for physics calculations
 const vector1 = new THREE.Vector3();
@@ -173,5 +175,3 @@ function createPhysicsSphere(mesh, radius, position) {
         velocity: new THREE.Vector3()
     };
 }
-
-export { PhysicsWorld, createPhysicsSphere, GRAVITY, SPHERE_RADIUS, STEPS_PER_FRAME };
