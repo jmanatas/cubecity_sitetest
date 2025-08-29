@@ -1,4 +1,5 @@
-// avatarController.js - Non-module version
+import * as THREE from 'https://esm.sh/three@0.132.2';
+
 class AvatarController {
     constructor(character = null, avatar = null) {
         this.character = character;

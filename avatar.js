@@ -1,4 +1,8 @@
-// avatar.js - Non-module version
+import * as THREE from 'https://esm.sh/three@0.132.2';
+import { Capsule } from 'https://esm.sh/three@0.132.2/examples/jsm/math/Capsule.js';
+import { GLTFLoader } from 'https://esm.sh/three@0.132.2/examples/jsm/loaders/GLTFLoader.js';
+import { AvatarController } from './avatarController.js';
+
 class Avatar {
     constructor(scene, respawnHeight, playerHeight, playerRadius) {
         this.scene = scene;

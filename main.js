@@ -11,6 +11,8 @@ import { FXAAShader } from 'https://esm.sh/three@0.132.2/examples/jsm/shaders/FX
 import { Capsule } from 'https://esm.sh/three@0.132.2/examples/jsm/math/Capsule.js';
 import { GLTFLoader } from 'https://esm.sh/three@0.132.2/examples/jsm/loaders/GLTFLoader.js';
 import { PhysicsWorld, createPhysicsSphere, GRAVITY, SPHERE_RADIUS, STEPS_PER_FRAME } from './physics.js';
+import { Avatar } from './avatar.js';
+import { AvatarController } from './avatarController.js';
 
 const NUM_SPHERES = 25; // Number of spheres to create
 const PLAYER_HEIGHT = 1.8; // Height of the player capsule

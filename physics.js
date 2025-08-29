@@ -1,6 +1,7 @@
 import * as THREE from 'https://esm.sh/three@0.132.2';
 import { Octree } from 'https://esm.sh/three@0.132.2/examples/jsm/math/Octree.js';
 import { OctreeHelper } from 'https://esm.sh/three@0.132.2/examples/jsm/helpers/OctreeHelper.js';
+import { Capsule } from 'https://esm.sh/three@0.132.2/examples/jsm/math/Capsule.js';
 
 export const GRAVITY = 30;
 export const SPHERE_RADIUS = 0.2;
