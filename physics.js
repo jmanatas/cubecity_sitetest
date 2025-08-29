@@ -172,3 +172,5 @@ function createPhysicsSphere(mesh, radius, position) {
         velocity: new THREE.Vector3()
     };
 }
+
+export { PhysicsWorld, createPhysicsSphere, GRAVITY, SPHERE_RADIUS, STEPS_PER_FRAME };

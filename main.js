@@ -1,14 +1,15 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.module.js';
-import Stats from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/libs/stats.module.js';
-import { Octree } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/math/Octree.js';
-import { RGBELoader } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/loaders/RGBELoader.js';
-import { EffectComposer } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/postprocessing/RenderPass.js';
-import { OutlinePass } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/postprocessing/OutlinePass.js';
-import { ShaderPass } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/postprocessing/ShaderPass.js';
-import { FXAAShader } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/shaders/FXAAShader.js';
-import { Capsule } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/math/Capsule.js';
-import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/loaders/GLTFLoader.js';
+import * as THREE from './js/three.module.js';
+import Stats from './libs/stats.module.js';
+import { Octree } from './js/math/Octree.js';
+import { RGBELoader } from './js/loaders/RGBELoader.js';
+import { EffectComposer } from './js/postprocessing/EffectComposer.js';
+import { RenderPass } from './js/postprocessing/RenderPass.js';
+import { OutlinePass } from './js/postprocessing/OutlinePass.js';
+import { ShaderPass } from './js/postprocessing/ShaderPass.js';
+import { FXAAShader } from './js/shaders/FXAAShader.js';
+import { Capsule } from './js/math/Capsule.js';
+import { GLTFLoader } from './js/loaders/GLTFLoader.js';
+import { PhysicsWorld, createPhysicsSphere, GRAVITY, SPHERE_RADIUS, STEPS_PER_FRAME } from './physics.js';
 
 const NUM_SPHERES = 25; // Number of spheres to create
 const PLAYER_HEIGHT = 1.8; // Height of the player capsule
