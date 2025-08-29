@@ -1,4 +1,5 @@
-// physics.js - Non-module version
+import * as THREE from 'https://esm.sh/three@0.132.2';
+
 const GRAVITY = 30;
 const SPHERE_RADIUS = 0.2;
 const STEPS_PER_FRAME = 5;
@@ -172,5 +173,3 @@ function createPhysicsSphere(mesh, radius, position) {
         velocity: new THREE.Vector3()
     };
 }
-
-export { PhysicsWorld, createPhysicsSphere, GRAVITY, SPHERE_RADIUS, STEPS_PER_FRAME };
