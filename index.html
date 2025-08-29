@@ -1510,18 +1510,18 @@
         function animate() {
             requestAnimationFrame(animate);
 
-            // Only update if needed
+            // Check if avatar is defined before using it
+            if (!avatar) {
+                return; // Skip this frame if avatar isn't ready
+            }
+
             if (stats) stats.begin();
-            // Cap deltaTime to avoid large jumps
             const deltaTime = Math.min(0.05, clock.getDelta());
             const physicsDeltaTime = deltaTime / STEPS_PER_FRAME;
             
-            // Skip updates when tab is not visible
             if (!document.hidden) {
-                // PROCESS JUMP INPUT ONCE PER FRAME (not in physics loop) - KEEP ONLY THIS ONE
                 processJumpInput();
                 
-                // Physics updates (using subdivided time)
                 if (physicsWorld) {
                     for (let i = 0; i < STEPS_PER_FRAME; i++) {
                         controls(physicsDeltaTime);
@@ -1531,37 +1531,23 @@
                     }
                 }
 
-                // Animation updates (using full frame time)
+                // Add check for mixer before using it
                 if (avatar.mixer) {
                     avatar.mixer.update(deltaTime);
                 }
 
-                // Camera updates - always use third-person
                 if (avatar.character) {
                     avatar.updateThirdPersonCamera(camera);
                 }
 
-                composer.render(scene, camera);
+                if (composer) {
+                    composer.render(scene, camera);
+                } else if (renderer) {
+                    renderer.render(scene, camera);
+                }
             }
             
             if (stats) stats.end();
-        }
-
-        // Process jump input once per frame
-        function processJumpInput() {
-            if (!avatar || !avatar.controller) {
-                return;
-            }
-            
-            // Handle jump input - only if not already jumping and on floor
-            if (keyStates['Space'] && avatar.onFloor && !avatar.isJumping) {
-                const jumpSuccess = avatar.jump();
-                
-                // If jump was successful, consume the key press to prevent multiple jumps
-                if (jumpSuccess) {
-                    keyStates['Space'] = false;
-                }
-            }
         }
 
         // Processes player input and updates avatar movement/animations.
@@ -2212,6 +2198,10 @@
         // 4. Configures lighting and world geometry
         // 5. Starts the animation loop
         async function init() {
+            const loadingOverlay = document.getElementById('loading-overlay');
+            if (loadingOverlay) {
+                loadingOverlay.style.display = 'flex';
+            }
             try {
                 // Create and configure stats FIRST
                 stats = new Stats();
@@ -2236,7 +2226,18 @@
                 
                 // Setup player and load character
                 setupPlayer();
-                await avatar.loadCharacter('./src/models/Cubetonian_250825.glb');
+                try {
+                    await avatar.loadCharacter('./src/models/Cubetonian_250825.glb');
+                    avatar.clock = clock;
+                    console.log('Avatar loaded successfully');
+                } catch (error) {
+                    console.error('Failed to load avatar model:', error);
+                    // Create a simple fallback avatar
+                    const geometry = new THREE.BoxGeometry(1, 2, 1);
+                    const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+                    avatar.character = new THREE.Mesh(geometry, material);
+                    scene.add(avatar.character);
+                }
                 avatar.clock = clock;
 
                 // Create gravity indicator
@@ -2248,9 +2249,6 @@
 
                 // Debug capsule
                 avatar.debugCapsule();
-
-                // Reset state after character is loaded
-                // avatar.resetState();
 
                 // Setup spheres (now physicsWorld is initialized)
                 setupSpheres();
@@ -2489,6 +2487,21 @@
                 setupEventListeners();
                 setupObjectClickHandler();
 
+                await Promise.all([
+                    loadScreenshotTextures(),
+                    avatar.loadCharacter('./src/models/Cubetonian_250825.glb').catch(error => {
+                        console.warn('Using fallback avatar due to load error:', error);
+                        // Create simple fallback
+                        const geometry = new THREE.BoxGeometry(1, 2, 1);
+                        const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+                        avatar.character = new THREE.Mesh(geometry, material);
+                        scene.add(avatar.character);
+                        return true; // Resolve the promise anyway
+                    })
+                ]);
+                
+                avatar.clock = clock;
+
                 // Start animation
                 animate();
 
@@ -2517,7 +2530,11 @@
             } catch (error) {
                 console.error('Initialization failed:', error);
                 setupFallbackScene();
-                animate();
+                // animate();
+                // Don't start animate() here if initialization failed completely
+            }
+            if (loadingOverlay) {
+                loadingOverlay.style.display = 'none';
             }
         }
 
