@@ -5,79 +5,19 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 
-    <!-- THREE.js - Core library -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <!-- Use this CDN for Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r132/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r17/Stats.min.js"></script>
 
-    <!-- Stats.js -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/libs/stats.min.js"></script>
+    <!-- Load other components from rawgit (works with GitHub Pages) -->
+    <script src="https://rawcdn.githack.com/mrdoob/three.js/r132/examples/js/loaders/RGBELoader.js"></script>
+    <script src="https://rawcdn.githack.com/mrdoob/three.js/r132/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://rawcdn.githack.com/mrdoob/three.js/r132/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://rawcdn.githack.com/mrdoob/three.js/r132/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://rawcdn.githack.com/mrdoob/three.js/r132/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://rawcdn.githack.com/mrdoob/three.js/r132/examples/js/shaders/FXAAShader.js"></script>
 
-    <!-- Three.js examples - UMD versions -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/RGBELoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/postprocessing/EffectComposer.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/postprocessing/RenderPass.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/postprocessing/ShaderPass.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/shaders/FXAAShader.js"></script>
-
-    <!-- For components that don't have UMD versions, we'll need to add them manually -->
-    <script>
-    // Manual implementation of missing components
-    if (typeof THREE !== 'undefined') {
-        // Simple Octree implementation
-        THREE.Octree = class Octree {
-            constructor() {
-                this.triangles = [];
-            }
-            fromGraphNode(node) {
-                // Simplified implementation
-                node.traverse((child) => {
-                    if (child.isMesh) {
-                        this.triangles.push(child);
-                    }
-                });
-            }
-            capsuleIntersect(capsule) {
-                // Simple collision detection
-                return null;
-            }
-            sphereIntersect(sphere) {
-                // Simple collision detection
-                return null;
-            }
-        };
-        
-        // Simple OctreeHelper implementation
-        THREE.OctreeHelper = class OctreeHelper extends THREE.LineSegments {
-            constructor(octree, color = 0x00ff00) {
-                super();
-                this.octree = octree;
-                this.color = new THREE.Color(color);
-            }
-        };
-        
-        // Simple Capsule implementation
-        THREE.Capsule = class Capsule {
-            constructor(start = new THREE.Vector3(0, 0, 0), end = new THREE.Vector3(0, 1, 0), radius = 1) {
-                this.start = start;
-                this.end = end;
-                this.radius = radius;
-            }
-            translate(vector) {
-                this.start.add(vector);
-                this.end.add(vector);
-            }
-        };
-        
-        // Simple OutlinePass implementation
-        THREE.OutlinePass = class OutlinePass {
-            constructor(resolution, scene, camera) {
-                this.selectedObjects = [];
-            }
-        };
-        
-        console.log('Three.js custom components loaded');
-    }
-    </script>
+    <!-- Add manual implementations for missing components as above -->
 
     <style>
         body {
