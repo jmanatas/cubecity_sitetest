@@ -7,7 +7,13 @@
 
     <!-- Load Three.js and Stats.js from CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r132/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r17/Stats.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stats.js@17/build/stats.min.js"></script>
+    <script>
+    // Fallback if Stats is not defined
+    if (typeof Stats === 'undefined') {
+        document.write('<script src="https://threejs.org/examples/js/libs/stats.min.js"><\/script>');
+    }
+    </script>
 
     <!-- Load other components -->
     <script src="https://rawcdn.githack.com/mrdoob/three.js/r132/examples/js/loaders/RGBELoader.js"></script>
@@ -1542,6 +1548,12 @@
 
         // Sets up a fallback scene with basic lighting and a ground plane
         function setupFallbackScene() {
+            // SAFETY CHECK:
+            if (!scene) {
+                console.error("Scene is not defined, cannot setup fallback");
+                return;
+            }
+
             // Add lights
             const light = new THREE.AmbientLight(0xffffff, 0.5);
             scene.add(light);
@@ -2218,18 +2230,22 @@
 
         // Main initialization function
         async function init() {
-            const loadingOverlay = document.getElementById('loading-overlay');
-            if (loadingOverlay) {
-                loadingOverlay.style.display = 'flex';
-            }
+        const loadingOverlay = document.getElementById('loading-overlay');
+        if (loadingOverlay) {
+            loadingOverlay.style.display = 'flex';
+        }
+        
+        try {
+            // 1. CREATE SCENE FIRST - This is the critical fix
+            scene = new THREE.Scene();
+            scene.fog = new THREE.Fog(0xfffae6, 0, 750);
             
-            try {
-                // Create and configure stats
-                stats = new Stats();
-                stats.domElement.style.position = 'absolute';
-                stats.domElement.style.top = '0px';
-                stats.domElement.style.left = '0px';
-                document.getElementById('container').appendChild(stats.domElement);
+            // 2. Then create stats (after scene exists)
+            stats = new Stats();
+            stats.domElement.style.position = 'absolute';
+            stats.domElement.style.top = '0px';
+            stats.domElement.style.left = '0px';
+            document.getElementById('container').appendChild(stats.domElement);
 
                 // Create basic Three.js components
                 scene = new THREE.Scene();
