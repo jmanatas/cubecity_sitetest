@@ -1,11 +1,14 @@
-import * as THREE from './three.module.js';
-import { Octree } from './three/examples/jsm/math/Octree.js';
-import { RGBELoader } from './three/examples/jsm/loaders/RGBELoader.js';
-import { EffectComposer } from './three/examples/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from './three/examples/jsm/postprocessing/RenderPass.js';
-import { OutlinePass } from './three/examples/jsm/postprocessing/OutlinePass.js';
-import { ShaderPass } from './three/examples/jsm/postprocessing/ShaderPass.js';
-import { FXAAShader } from './three/examples/jsm/shaders/FXAAShader.js';
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.162.0/build/three.module.js';
+import Stats from 'https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/libs/stats.module.js';
+import { Capsule } from 'https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/math/Capsule.js';
+import { Octree } from 'https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/math/Octree.js';
+import { RGBELoader } from 'https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/loaders/RGBELoader.js';
+import { EffectComposer } from 'https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/postprocessing/RenderPass.js';
+import { OutlinePass } from 'https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/postprocessing/OutlinePass.js';
+import { ShaderPass } from 'https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/postprocessing/ShaderPass.js';
+import { FXAAShader } from 'https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/shaders/FXAAShader.js';
+import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/loaders/GLTFLoader.js';
 import { Avatar } from './avatar.js';
 import { PhysicsWorld, createPhysicsSphere, GRAVITY, SPHERE_RADIUS, STEPS_PER_FRAME } from './physics.js';
 
