@@ -1,14 +1,15 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.162.0/build/three.module.js';
-import Stats from 'https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/libs/stats.module.js';
-import { Capsule } from 'https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/math/Capsule.js';
-import { Octree } from 'https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/math/Octree.js';
-import { RGBELoader } from 'https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/loaders/RGBELoader.js';
-import { EffectComposer } from 'https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from 'https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/postprocessing/RenderPass.js';
-import { OutlinePass } from 'https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/postprocessing/OutlinePass.js';
-import { ShaderPass } from 'https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/postprocessing/ShaderPass.js';
-import { FXAAShader } from 'https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/shaders/FXAAShader.js';
-import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/loaders/GLTFLoader.js';
+import * as THREE from './three.module.js';
+import Stats from './three/examples/jsm/libs/stats.module.js';
+import { Octree } from './three/examples/jsm/math/Octree.js';
+import { RGBELoader } from './three/examples/jsm/loaders/RGBELoader.js';
+import { EffectComposer } from './three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from './three/examples/jsm/postprocessing/RenderPass.js';
+import { OutlinePass } from './three/examples/jsm/postprocessing/OutlinePass.js';
+import { ShaderPass } from './three/examples/jsm/postprocessing/ShaderPass.js';
+import { FXAAShader } from './three/examples/jsm/shaders/FXAAShader.js';
+import { Capsule } from './three/examples/jsm/math/Capsule.js';
+import { GLTFLoader } from './three/examples/jsm/loaders/GLTFLoader.js';
+import { AvatarController } from './avatarController.js';
 import { Avatar } from './avatar.js';
 import { PhysicsWorld, createPhysicsSphere, GRAVITY, SPHERE_RADIUS, STEPS_PER_FRAME } from './physics.js';
 
@@ -1163,6 +1164,18 @@ let gravityIndicator;
 // 5. Starts the animation loop
 async function init() {
     try {
+        // Create scene FIRST
+        scene = new THREE.Scene();
+        scene.fog = new THREE.Fog(0xfffae6, 0, 750);
+
+        // Then create stats - make sure Stats is imported correctly
+        if (typeof Stats !== 'undefined') {
+            stats = new Stats();
+            stats.domElement.style.position = 'absolute';
+            stats.domElement.style.top = '0px';
+            stats.domElement.style.left = '0px';
+            document.getElementById('container').appendChild(stats.domElement);
+        }
         // Create and configure stats FIRST
         stats = new Stats();
         stats.domElement.style.position = 'absolute';
@@ -1466,6 +1479,8 @@ async function init() {
 
     } catch (error) {
         console.error('Initialization failed:', error);
+        // Ensure scene exists for fallback
+        if (!scene) scene = new THREE.Scene();
         setupFallbackScene();
         animate();
     }
