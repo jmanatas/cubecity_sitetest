@@ -592,22 +592,6 @@
             }
         }
 
-        class OutlinePass {
-            constructor(resolution, scene, camera) {
-                this.selectedObjects = [];
-                this.visibleEdgeColor = new THREE.Color();
-                this.hiddenEdgeColor = new THREE.Color();
-                this.edgeStrength = 1.0;
-                this.edgeGlow = 0.0;
-                this.edgeThickness = 1.0;
-                this.pulsePeriod = 0.0;
-            }
-            
-            setSize(width, height) {
-                // Empty implementation
-            }
-        }
-
         // AvatarController class
         class AvatarController {
             constructor(character = null, avatar = null) {
@@ -1146,10 +1130,7 @@
         let scene, camera, renderer, worldOctree, worldObjects;
         let clock = new THREE.Clock(); 
         let objectsData = []; 
-        let selectedObjectIndex = -1; 
-        let outlinePass;
-        let renderPass;
-        let effectFXAA;
+        let selectedObjectIndex = -1;
         let textureUrls = new Map();
         let lastMouseX = 0;
         let lastMouseY = 0;
@@ -1748,10 +1729,6 @@
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
-            
-            // Update post-processing
-            effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight);
-            composer.setSize(window.innerWidth, window.innerHeight);
         }
 
         // Sets up the click handler for objects in the scene
@@ -2052,12 +2029,6 @@
             
             highlightedObject = object;
             
-            // Outline effect
-            const bbox = new THREE.Box3().setFromObject(object);
-            const size = bbox.getSize(new THREE.Vector3()).length();
-            outlinePass.edgeStrength = size < 1.0 ? 5.0 : 3.0;
-            outlinePass.selectedObjects = [object];
-            
             // Restore dimming effect
             worldObjects.traverse((child) => {
                 if (!child.isMesh || child === object || !child.material) return;
@@ -2125,9 +2096,6 @@
             
             // Remove clickable class
             document.body.classList.remove('clickable');
-            
-            // Clear outline selection
-            outlinePass.selectedObjects = [];
 
             // Restore original materials
             worldObjects.traverse((child) => {
@@ -2263,21 +2231,6 @@
 
                 // Handle window resize
                 window.addEventListener('resize', onWindowResize);
-
-                // Outline pass setup
-                outlinePass = new OutlinePass(
-                    new THREE.Vector2(window.innerWidth, window.innerHeight),
-                    scene,
-                    camera
-                );
-
-                // Pink outline configuration
-                outlinePass.visibleEdgeColor.set(0xff69b4);
-                outlinePass.hiddenEdgeColor.set(0xff1493);
-                outlinePass.edgeStrength = 3.0;
-                outlinePass.edgeGlow = 0.5;
-                outlinePass.edgeThickness = 1.0;
-                outlinePass.pulsePeriod = 0;
 
                 // Load assets
                 threejsData = await loadJSON();
