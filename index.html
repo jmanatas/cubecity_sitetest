@@ -1608,10 +1608,8 @@
                     avatar.updateThirdPersonCamera(camera);
                 }
 
-                if (composer) {
-                    composer.render(scene, camera);
-                } else if (renderer) {
-                    renderer.render(scene, camera);
+                if (renderer) {
+                renderer.render(scene, camera);
                 }
             }
         }
