@@ -6,8 +6,8 @@ import {
 	Triangle,
 	Vector3,
 	Layers
-} from './three.module.js';
-import { Capsule } from './three/examples/jsm/math/Capsule.js';
+} from 'three';
+import { Capsule } from '../math/Capsule.js';
 
 
 const _v1 = new Vector3();
