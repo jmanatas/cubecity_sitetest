@@ -1,5 +1,5 @@
 // avatarController.js
-import * as THREE from './three.module.js';
+import * as THREE from './src/three.module.js';
 
 export class AvatarController {
     constructor(character = null, avatar = null) {

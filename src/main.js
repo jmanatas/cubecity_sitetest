@@ -1,17 +1,17 @@
-import * as THREE from './three.module.js';
-import Stats from './three/examples/jsm/libs/stats.module.js';
-import { Octree } from './three/examples/jsm/math/Octree.js';
-import { RGBELoader } from './three/examples/jsm/loaders/RGBELoader.js';
-import { EffectComposer } from './three/examples/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from './three/examples/jsm/postprocessing/RenderPass.js';
-import { OutlinePass } from './three/examples/jsm/postprocessing/OutlinePass.js';
-import { ShaderPass } from './three/examples/jsm/postprocessing/ShaderPass.js';
-import { FXAAShader } from './three/examples/jsm/shaders/FXAAShader.js';
-import { Capsule } from './three/examples/jsm/math/Capsule.js';
-import { GLTFLoader } from './three/examples/jsm/loaders/GLTFLoader.js';
-import { AvatarController } from './avatarController.js';
-import { Avatar } from './avatar.js';
-import { PhysicsWorld, createPhysicsSphere, GRAVITY, SPHERE_RADIUS, STEPS_PER_FRAME } from './physics.js';
+import * as THREE from './src/three.module.js';
+import Stats from './src/three/examples/jsm/libs/stats.module.js';
+import { Octree } from './src/three/examples/jsm/math/Octree.js';
+import { RGBELoader } from './src/three/examples/jsm/loaders/RGBELoader.js';
+import { EffectComposer } from './src/three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from './src/three/examples/jsm/postprocessing/RenderPass.js';
+import { OutlinePass } from './src/three/examples/jsm/postprocessing/OutlinePass.js';
+import { ShaderPass } from './src/three/examples/jsm/postprocessing/ShaderPass.js';
+import { FXAAShader } from './src/three/examples/jsm/shaders/FXAAShader.js';
+import { Capsule } from './src/three/examples/jsm/math/Capsule.js';
+import { GLTFLoader } from './src/three/examples/jsm/loaders/GLTFLoader.js';
+import { AvatarController } from './src/avatarController.js';
+import { Avatar } from './src/avatar.js';
+import { PhysicsWorld, createPhysicsSphere, GRAVITY, SPHERE_RADIUS, STEPS_PER_FRAME } from './src/physics.js';
 
 const NUM_SPHERES = 25; // Number of spheres to create
 const PLAYER_HEIGHT = 1.8; // Height of the player capsule
