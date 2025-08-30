@@ -1,7 +1,7 @@
-import * as THREE from './src/three.module.js';
-import { Capsule } from './src/three/examples/jsm/math/Capsule.js';
-import { GLTFLoader } from './src/three/examples/jsm/loaders/GLTFLoader.js';
-import { AvatarController } from './src/avatarController.js';
+import * as THREE from 'three';
+import { Capsule } from 'three/examples/jsm/math/Capsule.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { AvatarController } from './avatarController.js';
 
 export class Avatar {
     constructor(scene, respawnHeight, playerHeight, playerRadius) {
