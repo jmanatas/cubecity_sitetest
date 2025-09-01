@@ -299,9 +299,6 @@ export class Avatar {
             this.collider.start.z
         );
         
-        // Start with the debug capsule hidden
-        this.debugCapsuleMesh.visible = false;
-        
         this.scene.add(this.debugCapsuleMesh);
     }
 }

@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js';
 import Stats from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/libs/stats.module.js';
+import { Capsule } from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/math/Capsule.js';
 import { Octree } from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/math/Octree.js';
 import { RGBELoader } from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/loaders/RGBELoader.js';
 import { EffectComposer } from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/postprocessing/EffectComposer.js';
@@ -7,6 +8,9 @@ import { RenderPass } from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/
 import { OutlinePass } from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/postprocessing/OutlinePass.js';
 import { ShaderPass } from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/postprocessing/ShaderPass.js';
 import { FXAAShader } from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/shaders/FXAAShader.js';
+import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/loaders/GLTFLoader.js';
+import { OctreeHelper } from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/helpers/OctreeHelper.js';
+import { AvatarController } from './avatarController.js';
 import { Avatar } from './avatar.js';
 import { PhysicsWorld, createPhysicsSphere, GRAVITY, SPHERE_RADIUS, STEPS_PER_FRAME } from './physics.js';
 
@@ -56,7 +60,7 @@ const HIGHLIGHT_HYSTERESIS = 200; // ms delay before switching objects
 // Load object/geometry data from JSON file
 async function loadObjectsData() {
     try {
-        const response = await fetch('threejs_export.json');
+        const response = await fetch('./threejs_export.json');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -93,7 +97,7 @@ const vector1 = new THREE.Vector3();
 // Returns a Promise resolving to the parsed JSON data containing object geometries, positions, and other properties.
 async function loadJSON() {
     try {
-        const response = await fetch('/threejs_export.json');
+        const response = await fetch('./threejs_export.json');
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         
         const data = await response.json();
@@ -208,63 +212,9 @@ function createGravityIndicator() {
     indicator.style.fontWeight = 'bold';
     indicator.style.border = '2px solid #00ff00'; // Green border when on
     indicator.style.transition = 'all 0.3s ease'; // Smooth transitions
-    indicator.style.cursor = 'pointer'; // Add pointer cursor
     indicator.textContent = 'GRAVITY: ON';
-    
-    // Add click event listener
-    indicator.addEventListener('click', toggleGravity);
-    
     document.body.appendChild(indicator);
     return indicator;
-}
-function toggleGravity() {
-    gravityEnabled = !gravityEnabled;
-    avatar.gravityEnabled = gravityEnabled; 
-    
-    // Update visual indicator
-    if (gravityIndicator) {
-        gravityIndicator.textContent = gravityEnabled ? 'GRAVITY: ON' : 'GRAVITY: OFF';
-        
-        if (gravityEnabled) {
-            avatar.setAnimation('fly');
-            avatar.isJumping = false;
-            gravityIndicator.style.color = 'white';
-            gravityIndicator.style.backgroundColor = 'rgba(0,0,0,0.7)';
-            gravityIndicator.style.border = '2px solid #00ff00';
-            gravityIndicator.classList.remove('off');
-        } else {
-            const { animation } = avatar.controller.update(0.016, keyStates, avatar.cameraAzimuth);
-            avatar.setAnimation(animation);
-            gravityIndicator.style.color = '#ff6b6b';
-            gravityIndicator.style.backgroundColor = 'rgba(0,0,0,0.9)';
-            gravityIndicator.style.border = '2px solid #ff6b6b';
-            gravityIndicator.classList.add('off');
-        }
-    }
-    
-    // CRITICAL FIX: Reset jumping state when gravity is disabled
-    if (!gravityEnabled && avatar.isJumping) {
-        avatar.isJumping = false;
-        
-        // Force fly animation when gravity is turned OFF during jump
-        avatar.setAnimation('fly');
-    } else if (!gravityEnabled) {
-        // Gravity turned OFF - play fly animation
-        avatar.setAnimation('fly');
-    } else {
-        // Gravity turned ON - return to appropriate animation based on movement
-        const { animation } = avatar.controller.update(0.016, keyStates, avatar.cameraAzimuth);
-        avatar.setAnimation(animation);
-    }
-    
-    if (!gravityEnabled) {
-        // When disabling gravity, stop vertical movement
-        avatar.velocity.y = 0;
-    } else {
-        // When ENABLING gravity, force the avatar to not be on floor
-        avatar.onFloor = false;
-        avatar.velocity.y = -1.0; // Small downward push
-    }
 }
 
 // Sets up the teleport button click handler to move the player to the selected object's position.
@@ -276,19 +226,6 @@ function setupTeleportButton() {
         console.error("Teleport button not found");
         return;
     }
-    
-    // Add hover effects
-    teleportBtn.addEventListener('mouseenter', function() {
-        this.style.transform = 'scale(1.05)';
-        this.style.boxShadow = '0 0 10px rgba(74, 175, 255, 0.5)';
-        this.style.backgroundColor = 'rgba(0,0,0,0.9)';
-    });
-    
-    teleportBtn.addEventListener('mouseleave', function() {
-        this.style.transform = '';
-        this.style.boxShadow = '';
-        this.style.backgroundColor = 'rgba(0,0,0,0.7)';
-    });
     
     teleportBtn.onclick = function() {
         // Add visual feedback
@@ -355,9 +292,6 @@ function setupTeleportButton() {
         // Revert to normal state after 1 second
         setTimeout(() => {
             this.classList.remove('success');
-            this.style.transform = '';
-            this.style.boxShadow = '';
-            this.style.backgroundColor = 'rgba(0,0,0,0.7)';
         }, 1000);
     };
 }
@@ -788,7 +722,6 @@ function setupEventListeners() {
             if (avatar.debugCapsuleMesh) {
                 avatar.debugCapsuleMesh.visible = !avatar.debugCapsuleMesh.visible;
             }
-            return; // Add return to prevent further processing
         }
         
         // Add F key for gravity toggle
@@ -1232,6 +1165,18 @@ let gravityIndicator;
 // 5. Starts the animation loop
 async function init() {
     try {
+        // Create scene FIRST
+        scene = new THREE.Scene();
+        scene.fog = new THREE.Fog(0xfffae6, 0, 750);
+
+        // Then create stats - make sure Stats is imported correctly
+        if (typeof Stats !== 'undefined') {
+            stats = new Stats();
+            stats.domElement.style.position = 'absolute';
+            stats.domElement.style.top = '0px';
+            stats.domElement.style.left = '0px';
+            document.getElementById('container').appendChild(stats.domElement);
+        }
         // Create and configure stats FIRST
         stats = new Stats();
         stats.domElement.style.position = 'absolute';
@@ -1347,22 +1292,6 @@ async function init() {
         toggleBtn.textContent = 'Teleport'; 
         toggleBtn.style.pointerEvents = 'auto';
         toggleBtn.style.zIndex = '101'; // Ensure it's above the list
-
-        // Add hover effects to toggle button
-        toggleBtn.addEventListener('mouseenter', function() {
-            this.style.transform = 'scale(1.05)';
-            this.style.boxShadow = '0 0 10px rgba(74, 175, 255, 0.5)';
-            this.style.backgroundColor = 'rgba(0,0,0,0.9)';
-        });
-
-        toggleBtn.addEventListener('mouseleave', function() {
-            if (!this.classList.contains('active')) {
-                this.style.transform = '';
-                this.style.boxShadow = '';
-                this.style.backgroundColor = 'rgba(0,0,0,0.7)';
-            }
-        });
-
         document.body.appendChild(toggleBtn);
 
         // Initialize world
@@ -1551,6 +1480,8 @@ async function init() {
 
     } catch (error) {
         console.error('Initialization failed:', error);
+        // Ensure scene exists for fallback
+        if (!scene) scene = new THREE.Scene();
         setupFallbackScene();
         animate();
     }

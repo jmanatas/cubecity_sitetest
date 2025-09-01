@@ -102,23 +102,25 @@ a, button, input, select {
 
 #object-list {
     position: fixed;
-    top: 100px; /* Initial position */
+    bottom: 20px;
     right: 20px;
     width: 300px;
     max-height: 300px;
     background-color: rgba(0, 0, 0, 0.7);
     border: 1px solid #444;
     border-radius: 5px;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    display: none;
-    z-index: 100 !important;
+    padding: 10px;
+    overflow-y: auto;
+    font-family: Monospace;
+    font-size: 12px;
+    line-height: 1.4;
+    display: none; /* Start hidden */
+	z-index: 100 !important;
 }
 
 #toggle-object-list {
     position: fixed;
-    top: 120px;
+    bottom: 20px;
     right: 20px;
     padding: 5px 10px;
     background: rgba(0,0,0,0.5);
@@ -166,34 +168,17 @@ a, button, input, select {
     position: absolute;
     right: 10px;
     top: 10px;
-    padding: 10px 15px; /* Match gravity indicator padding */
-    background: rgba(0,0,0,0.7); /* Match gravity indicator background */
-    color: white; /* Match text color */
-    border: 2px solid #4af; /* Blue border to match object list style */
-    border-radius: 5px; /* Match gravity indicator border radius */
+    padding: 2px 8px;
+    background: rgba(0,0,0,0.5);
+    color: white;
+    border: 1px solid #444;
+    border-radius: 3px;
     cursor: pointer;
-    font-size: 14px; /* Match gravity indicator font size */
-    font-weight: bold; /* Match gravity indicator font weight */
-    font-family: Arial, sans-serif; /* Match gravity indicator font */
-    transition: all 0.3s ease; /* Match gravity indicator transition */
-    z-index: 102; /* Ensure it's above the list */
-    margin: 0;
+    font-size: 11px;
 }
 
 #teleport-button:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 10px rgba(74, 175, 255, 0.5); /* Blue glow to match border */
-    background: rgba(0,0,0,0.9);
-}
-
-#teleport-button.clicked {
-    background: rgba(74, 175, 255, 0.3);
-    border-color: #6bf;
-}
-
-#teleport-button.success {
-    background: rgba(76, 175, 80, 0.3);
-    border-color: #4CAF50;
+    background: rgba(0,0,0,0.7);
 }
 
 canvas {
@@ -324,8 +309,7 @@ canvas {
 
 #object-list {
     position: fixed;
-    bottom: auto; /* Remove bottom positioning */
-    top: 155px; /* Position from top instead of bottom */
+    bottom: 20px;
     right: 20px;
     width: 300px;
     max-height: 300px;
@@ -334,18 +318,17 @@ canvas {
     border-radius: 5px;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-    display: none;
+    overflow: hidden; /* Prevent overall scrolling */
+    display: none; /* Start hidden */
     z-index: 100 !important;
 }
 
 #object-list-header {
-    padding: 5px;
+    padding: 10px;
     background-color: rgba(0, 0, 0, 0.9);
     border-bottom: 1px solid #444;
-    flex-shrink: 0;
+    flex-shrink: 0; /* Prevent header from shrinking */
     position: relative;
-    min-height: 40px;
 }
 
 #object-list-header h3 {
@@ -353,7 +336,6 @@ canvas {
     margin-bottom: 0;
     color: #fff;
     display: inline-block;
-    line-height: 40px; /* Vertically center with button */
 }
 
 #object-list-content {
@@ -392,19 +374,14 @@ canvas {
 #teleport-button {
     position: absolute;
     right: 10px;
-    top: 5px; /* Position at top of header */
-    padding: 10px 15px;
-    background: rgba(0,0,0,0.7);
+    top: 10px;
+    padding: 2px 8px;
+    background: rgba(0,0,0,0.5);
     color: white;
-    border: 2px solid #4af;
-    border-radius: 5px;
+    border: 1px solid #444;
+    border-radius: 3px;
     cursor: pointer;
-    font-size: 14px;
-    font-weight: bold;
-    font-family: Arial, sans-serif;
-    transition: all 0.3s ease;
-    z-index: 102;
-    margin: 0;
+    font-size: 11px;
 }
 
 #teleport-button:hover {
@@ -432,36 +409,19 @@ canvas {
 
 #toggle-object-list {
     position: fixed;
-    bottom: auto;
-    top: 110px; 
+    bottom: 20px;
     right: 20px;
-    padding: 10px 15px;
-    background: rgba(0,0,0,0.7);
+    padding: 5px 10px;
+    background: rgba(0,0,0,0.5);
     color: white;
-    border: 2px solid #4af;
+    border: 1px solid #444;
     border-radius: 5px;
     cursor: pointer !important;
     z-index: 101;
     pointer-events: auto !important;
-    font-family: Arial, sans-serif;
-    font-size: 14px;
-    font-weight: bold;
-    transition: all 0.3s ease;
-    margin: 0; /* Remove any default margin */
 }
 
 #toggle-object-list.active {
-    background-color: rgba(76, 175, 80, 0.7) !important;
+    background-color: #4CAF50 !important;
     border-color: #45a049 !important;
 }
-
-#toggle-object-list:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 10px rgba(74, 175, 255, 0.5);
-    background: rgba(0,0,0,0.9);
-}
-
-#gravity-indicator.off:hover {
-    box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
-}
-
