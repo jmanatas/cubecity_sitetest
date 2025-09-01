@@ -56,7 +56,7 @@ const HIGHLIGHT_HYSTERESIS = 200; // ms delay before switching objects
 // Load object/geometry data from JSON file
 async function loadObjectsData() {
     try {
-        const response = await fetch('threejs_export.json');
+        const response = await fetch('./threejs_export.json');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
