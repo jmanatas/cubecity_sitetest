@@ -93,7 +93,7 @@ const vector1 = new THREE.Vector3();
 // Returns a Promise resolving to the parsed JSON data containing object geometries, positions, and other properties.
 async function loadJSON() {
     try {
-        const response = await fetch('/threejs_export.json');
+        const response = await fetch('./threejs_export.json');
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         
         const data = await response.json();
