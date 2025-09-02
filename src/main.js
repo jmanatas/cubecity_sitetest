@@ -57,7 +57,7 @@ const HIGHLIGHT_HYSTERESIS = 200; // ms delay before switching objects
 // Load object/geometry data from JSON file
 async function loadObjectsData() {
     try {
-        const response = await fetch('./threejs_export.json');
+        const response = await fetch('threejs_export.json');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -94,7 +94,7 @@ const vector1 = new THREE.Vector3();
 // Returns a Promise resolving to the parsed JSON data containing object geometries, positions, and other properties.
 async function loadJSON() {
     try {
-        const response = await fetch('./threejs_export.json');
+        const response = await fetch('/threejs_export.json');
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         
         const data = await response.json();
@@ -1272,12 +1272,14 @@ let gravityIndicator;
 // 3. Initializes game systems (physics, controls, UI)
 // 4. Configures lighting and world geometry
 // 5. Starts the animation loop
+// Main initialization function that sets up the entire Three.js application:
+// 1. Creates core Three.js components (scene, camera, renderer)
+// 2. Loads assets (JSON data, textures, character model)
+// 3. Initializes game systems (physics, controls, UI)
+// 4. Configures lighting and world geometry
+// 5. Starts the animation loop
 async function init() {
     try {
-        // Initialize mobile controls
-        initMobileControls();
-        initMobileCameraControls();
-
         // Create and configure stats FIRST
         stats = new Stats();
         stats.domElement.style.position = 'absolute';
@@ -1313,6 +1315,10 @@ async function init() {
 
         // Setup spheres (now physicsWorld is initialized)
         setupSpheres();
+
+        // Initialize mobile controls AFTER avatar is created
+        initMobileControls();
+        initMobileCameraControls();
 
         renderer = new THREE.WebGLRenderer({
             antialias: true,
@@ -1599,10 +1605,11 @@ async function init() {
     }
 }
 
-// Make sure these global variables are accessible to mobileControls.js
+// These global variables are accessible to mobileControls.js
 window.keyStates = keyStates;
 window.avatar = avatar;
 window.throwBall = throwBall;
+window.THREE = THREE; // Add this line to export THREE
 
 function cleanup() {
     // Check if worldObjects exists and has children before trying to traverse it

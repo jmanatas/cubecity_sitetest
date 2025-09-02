@@ -5,14 +5,33 @@ let joystickCenterY = 0;
 let joystickRadius = 60;
 let joystickVector = { x: 0, y: 0 };
 
+// Safety check function
+function ensureGlobals() {
+    if (!window.keyStates) {
+        window.keyStates = {};
+    }
+    if (!window.THREE) {
+        console.error('THREE.js not available');
+        return false;
+    }
+    return true;
+}
+
 // Initialize mobile controls
 export function initMobileControls() {
+    if (!ensureGlobals()) return;
+    
     const joystick = document.getElementById('movement-joystick');
     const stick = document.getElementById('movement-stick');
     const jumpButton = document.getElementById('jump-button');
     const throwButton = document.getElementById('throw-button');
     const flyUpButton = document.getElementById('fly-up-button');
     const flyDownButton = document.getElementById('fly-down-button');
+    
+    if (!joystick || !stick) {
+        console.warn('Joystick elements not found');
+        return;
+    }
     
     if (!joystick || !stick) return;
     
@@ -301,6 +320,8 @@ function updateKeyStatesFromJoystick() {
 
 // Add camera control for mobile (swipe to look around)
 export function initMobileCameraControls() {
+    if (!ensureGlobals()) return;
+    
     let touchStartX = 0;
     let touchStartY = 0;
     let isCameraMoving = false;
@@ -318,7 +339,7 @@ export function initMobileCameraControls() {
     });
     
     document.addEventListener('touchmove', (e) => {
-        if (!isCameraMoving || e.touches.length !== 1) return;
+        if (!isCameraMoving || e.touches.length !== 1 || !window.avatar) return;
         
         const touchX = e.touches[0].clientX;
         const touchY = e.touches[0].clientY;
@@ -327,14 +348,12 @@ export function initMobileCameraControls() {
         const deltaY = touchY - touchStartY;
         
         // Update camera angles (sensitivity adjustment)
-        if (window.avatar) {
-            window.avatar.cameraAzimuth -= deltaX * 0.005;
-            window.avatar.cameraPolar = THREE.MathUtils.clamp(
-                window.avatar.cameraPolar - (deltaY * 0.005),
-                0.1,
-                Math.PI - 0.1
-            );
-        }
+        window.avatar.cameraAzimuth -= deltaX * 0.005;
+        window.avatar.cameraPolar = window.THREE.MathUtils.clamp(
+            window.avatar.cameraPolar - (deltaY * 0.005),
+            0.1,
+            Math.PI - 0.1
+        );
         
         touchStartX = touchX;
         touchStartY = touchY;
