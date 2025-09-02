@@ -57,7 +57,7 @@ const HIGHLIGHT_HYSTERESIS = 200; // ms delay before switching objects
 // Load object/geometry data from JSON file
 async function loadObjectsData() {
     try {
-        const response = await fetch('./threejs_export.json');
+        const response = await fetch('threejs_export.json');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -94,7 +94,7 @@ const vector1 = new THREE.Vector3();
 // Returns a Promise resolving to the parsed JSON data containing object geometries, positions, and other properties.
 async function loadJSON() {
     try {
-        const response = await fetch('./threejs_export.json');
+        const response = await fetch('/threejs_export.json');
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         
         const data = await response.json();
@@ -222,6 +222,9 @@ function toggleGravity() {
     gravityEnabled = !gravityEnabled;
     avatar.gravityEnabled = gravityEnabled; 
     
+    // CRITICAL: Reset vertical velocity when switching modes
+    avatar.velocity.y = 0;
+    
     // Update visual indicator
     if (gravityIndicator) {
         gravityIndicator.textContent = gravityEnabled ? 'GRAVITY: ON' : 'GRAVITY: OFF';
@@ -261,6 +264,7 @@ function toggleGravity() {
     if (!gravityEnabled) {
         // When disabling gravity, stop vertical movement
         avatar.velocity.y = 0;
+        avatar.onFloor = false; // Ensure we're not considered on floor
     } else {
         // When ENABLING gravity, force the avatar to not be on floor
         avatar.onFloor = false;
@@ -610,16 +614,18 @@ function controls(deltaTime) {
     if (!gravityEnabled) {
         const verticalSpeed = 5.0; // Adjust this value for desired vertical speed
         
+        // Reset vertical velocity first
+        avatar.velocity.y = 0;
+        
+        // Apply vertical movement only while keys are pressed
         if (keyStates['KeyQ']) {
             // Q key - move up
             avatar.velocity.y = verticalSpeed;
         } else if (keyStates['KeyE']) {
             // E key - move down
             avatar.velocity.y = -verticalSpeed;
-        } else {
-            // If neither Q nor E is pressed, maintain current vertical velocity
-            // (allows for floating when no keys are pressed)
         }
+        // If neither Q nor E is pressed, vertical velocity remains 0
     }
     
     // Set animation based on controller output, but don't override jump animation
@@ -645,7 +651,13 @@ function updatePlayer(deltaTime) {
     avatar.collider.translate(deltaPosition);
     
     // Handle collisions - this will set onFloor appropriately
-    physicsWorld.playerCollisions(avatar);
+    // BUT only apply collisions when gravity is enabled
+    if (gravityEnabled) {
+        physicsWorld.playerCollisions(avatar);
+    } else {
+        // In fly mode, we're never "on floor"
+        avatar.onFloor = false;
+    }
     
     // If we've landed after a jump (was in air, now on floor)
     if (avatar.isJumping && !wasOnFloor && avatar.onFloor) {
@@ -793,53 +805,79 @@ function setupEventListeners() {
         }
         
         // Add F key for gravity toggle
-        if (event.code === 'KeyF') {
-            gravityEnabled = !gravityEnabled;
-            avatar.gravityEnabled = gravityEnabled; 
-            
-            // Update visual indicator
-            if (gravityIndicator) {
-                gravityIndicator.textContent = gravityEnabled ? 'GRAVITY: ON' : 'GRAVITY: OFF';
+        keyStates[event.code] = true;
+            if (event.code === 'KeyF') {
+                gravityEnabled = !gravityEnabled;
+                avatar.gravityEnabled = gravityEnabled; 
                 
-                if (gravityEnabled) {
-                    avatar.setAnimation('fly');
+                // Update visual indicator
+                if (gravityIndicator) {
+                    gravityIndicator.textContent = gravityEnabled ? 'GRAVITY: ON' : 'GRAVITY: OFF';
+                    
+                    if (gravityEnabled) {
+                        avatar.setAnimation('fly');
+                        avatar.isJumping = false;
+                        gravityIndicator.style.color = 'white';
+                        gravityIndicator.style.backgroundColor = 'rgba(0,0,0,0.7)';
+                        gravityIndicator.style.border = '2px solid #00ff00';
+                    } else {
+                        const { animation } = avatar.controller.update(0.016, keyStates, avatar.cameraAzimuth);
+                        avatar.setAnimation(animation);
+                        gravityIndicator.style.color = '#ff6b6b';
+                        gravityIndicator.style.backgroundColor = 'rgba(0,0,0,0.9)';
+                        gravityIndicator.style.border = '2px solid #ff6b6b';
+                    }
+                }
+                
+                // CRITICAL FIX: Reset jumping state when gravity is disabled
+                if (!gravityEnabled && avatar.isJumping) {
                     avatar.isJumping = false;
-                    gravityIndicator.style.color = 'white';
-                    gravityIndicator.style.backgroundColor = 'rgba(0,0,0,0.7)';
-                    gravityIndicator.style.border = '2px solid #00ff00';
+                    
+                    // Force fly animation when gravity is turned OFF during jump
+                    avatar.setAnimation('fly');
+                } else if (!gravityEnabled) {
+                    // Gravity turned OFF - play fly animation
+                    avatar.setAnimation('fly');
                 } else {
+                    // Gravity turned ON - return to appropriate animation based on movement
                     const { animation } = avatar.controller.update(0.016, keyStates, avatar.cameraAzimuth);
                     avatar.setAnimation(animation);
-                    gravityIndicator.style.color = '#ff6b6b';
-                    gravityIndicator.style.backgroundColor = 'rgba(0,0,0,0.9)';
-                    gravityIndicator.style.border = '2px solid #ff6b6b';
+                }
+                
+                if (!gravityEnabled) {
+                    // When disabling gravity, stop vertical movement
+                    avatar.velocity.y = 0;
+                } else {
+                    // When ENABLING gravity, force the avatar to not be on floor
+                    avatar.onFloor = false;
+                    avatar.velocity.y = -1.0; // Small downward push
                 }
             }
-            
-            // CRITICAL FIX: Reset jumping state when gravity is disabled
-            if (!gravityEnabled && avatar.isJumping) {
-                avatar.isJumping = false;
-                
-                // Force fly animation when gravity is turned OFF during jump
-                avatar.setAnimation('fly');
-            } else if (!gravityEnabled) {
-                // Gravity turned OFF - play fly animation
-                avatar.setAnimation('fly');
-            } else {
-                // Gravity turned ON - return to appropriate animation based on movement
-                const { animation } = avatar.controller.update(0.016, keyStates, avatar.cameraAzimuth);
-                avatar.setAnimation(animation);
+        
+            // Check if Alt is pressed
+            if (event.code === 'AltLeft') {
+                highlightEffectEnabled = true;
+                document.body.classList.add('highlight-mode');
+                // Force update even without mouse movement
+                const mouse = new THREE.Vector2(
+                    (renderer.domElement.width/2) / window.innerWidth * 2 - 1,
+                    -(renderer.domElement.height/2) / window.innerHeight * 2 + 1
+                );
+                const raycaster = new THREE.Raycaster();
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(worldObjects.children, true);
+                if (intersects.length > 0) {
+                    applyHighlightEffect(intersects[0].object);
+                }
             }
-            
-            if (!gravityEnabled) {
-                // When disabling gravity, stop vertical movement
-                avatar.velocity.y = 0;
-            } else {
-                // When ENABLING gravity, force the avatar to not be on floor
-                avatar.onFloor = false;
-                avatar.velocity.y = -1.0; // Small downward push
-            }
+        // Handle Q and E only when gravity is DISABLED
+        if (!gravityEnabled && (event.code === 'KeyQ' || event.code === 'KeyE')) {
+            // Prevent default to avoid any browser shortcuts
+            event.preventDefault();
         }
+
+        // Key logger
+        console.log('Key down:', event.code, event.key)
     });
 
     document.addEventListener('keyup', (event) => {
@@ -886,6 +924,7 @@ function setupEventListeners() {
         }
         });
 
+    /*
     // Alt to highlight objects
     document.addEventListener('keydown', function(event) {
         keyStates[event.code] = true;
@@ -915,6 +954,8 @@ function setupEventListeners() {
         // Key logger
         console.log('Key down:', event.code, event.key);
     });
+    */
+
     // End Alt key highlight
     document.addEventListener('keyup', function(event) {
         keyStates[event.code] = false;
@@ -1263,18 +1304,12 @@ async function init() {
         await avatar.loadCharacter('./src/models/Cubetonian_250825.glb');
         avatar.clock = clock;
 
-        // Create gravity indicator
-        gravityIndicator = createGravityIndicator();
-
         // Set to third-person mode explicitly
         avatar.cameraMode = 'thirdPerson';
         avatar.resetThirdPersonCamera(camera);
 
         // Debug capsule
         avatar.debugCapsule();
-
-        // Reset state after character is loaded
-        // avatar.resetState();
 
         // Setup spheres (now physicsWorld is initialized)
         setupSpheres();
