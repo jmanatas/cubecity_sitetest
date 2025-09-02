@@ -9,7 +9,6 @@ import { ShaderPass } from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/
 import { FXAAShader } from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/shaders/FXAAShader.js';
 import { Avatar } from './avatar.js';
 import { PhysicsWorld, createPhysicsSphere, GRAVITY, SPHERE_RADIUS, STEPS_PER_FRAME } from './physics.js';
-import { initMobileControls, initMobileCameraControls, checkTouchDevice } from './mobileControls.js';
 
 const NUM_SPHERES = 25; // Number of spheres to create
 const PLAYER_HEIGHT = 1.8; // Height of the player capsule
@@ -1233,10 +1232,6 @@ let gravityIndicator;
 // 5. Starts the animation loop
 async function init() {
     try {
-        // Initialize mobile controls
-        initMobileControls();
-        initMobileCameraControls();
-
         // Create and configure stats FIRST
         stats = new Stats();
         stats.domElement.style.position = 'absolute';
@@ -1554,20 +1549,12 @@ async function init() {
             }
         });
 
-        // Check if we're on a touch device
-        checkTouchDevice();
-
     } catch (error) {
         console.error('Initialization failed:', error);
         setupFallbackScene();
         animate();
     }
 }
-
-// Make sure these global variables are accessible to mobileControls.js
-window.keyStates = keyStates;
-window.avatar = avatar;
-window.throwBall = throwBall;
 
 function cleanup() {
     // Check if worldObjects exists and has children before trying to traverse it
