@@ -16,86 +16,180 @@ export function initMobileControls() {
     
     if (!joystick || !stick) return;
     
-    // ... existing joystick code ...
+    // Get joystick center position
+    const rect = joystick.getBoundingClientRect();
+    joystickCenterX = rect.left + rect.width / 2;
+    joystickCenterY = rect.top + rect.height / 2;
+    joystickRadius = rect.width / 2;
+    
+    // Joystick touch events
+    joystick.addEventListener('touchstart', handleJoystickStart);
+    joystick.addEventListener('touchmove', handleJoystickMove);
+    joystick.addEventListener('touchend', handleJoystickEnd);
+    joystick.addEventListener('touchcancel', handleJoystickEnd);
+    
+    // Also support mouse events for testing on desktop
+    joystick.addEventListener('mousedown', handleJoystickStart);
+    document.addEventListener('mousemove', handleJoystickMove);
+    document.addEventListener('mouseup', handleJoystickEnd);
+    
+    // Prevent default on action buttons to avoid scrolling
+    if (jumpButton) {
+        jumpButton.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (window.keyStates) {
+                window.keyStates['Space'] = true;
+            }
+            jumpButton.style.backgroundColor = 'rgba(0, 200, 0, 0.9)';
+        });
+        
+        jumpButton.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            if (window.keyStates) {
+                window.keyStates['Space'] = false;
+            }
+            jumpButton.style.backgroundColor = 'rgba(0, 128, 0, 0.7)';
+        });
+        
+        jumpButton.addEventListener('touchcancel', (e) => {
+            e.preventDefault();
+            if (window.keyStates) {
+                window.keyStates['Space'] = false;
+            }
+            jumpButton.style.backgroundColor = 'rgba(0, 128, 0, 0.7)';
+        });
+        
+        // Mouse events for testing
+        jumpButton.addEventListener('mousedown', () => {
+            if (window.keyStates) {
+                window.keyStates['Space'] = true;
+            }
+            jumpButton.style.backgroundColor = 'rgba(0, 200, 0, 0.9)';
+        });
+        
+        jumpButton.addEventListener('mouseup', () => {
+            if (window.keyStates) {
+                window.keyStates['Space'] = false;
+            }
+            jumpButton.style.backgroundColor = 'rgba(0, 128, 0, 0.7)';
+        });
+    }
+    
+    if (throwButton) {
+        throwButton.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            throwButton.style.backgroundColor = 'rgba(200, 0, 0, 0.9)';
+            if (window.throwBall) {
+                window.throwBall();
+            }
+        });
+        
+        throwButton.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            throwButton.style.backgroundColor = 'rgba(128, 0, 0, 0.7)';
+        });
+        
+        throwButton.addEventListener('touchcancel', (e) => {
+            e.preventDefault();
+            throwButton.style.backgroundColor = 'rgba(128, 0, 0, 0.7)';
+        });
+        
+        // Mouse events for testing
+        throwButton.addEventListener('mousedown', () => {
+            throwButton.style.backgroundColor = 'rgba(200, 0, 0, 0.9)';
+            if (window.throwBall) {
+                window.throwBall();
+            }
+        });
+        
+        throwButton.addEventListener('mouseup', () => {
+            throwButton.style.backgroundColor = 'rgba(128, 0, 0, 0.7)';
+        });
+    }
     
     // Fly up button events
-    flyUpButton.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        if (window.keyStates) {
-            window.keyStates['KeyQ'] = true;
-        }
-        flyUpButton.style.backgroundColor = 'rgba(0, 150, 255, 0.9)';
-    });
-    
-    flyUpButton.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        if (window.keyStates) {
-            window.keyStates['KeyQ'] = false;
-        }
-        flyUpButton.style.backgroundColor = 'rgba(0, 100, 200, 0.7)';
-    });
-    
-    flyUpButton.addEventListener('touchcancel', (e) => {
-        e.preventDefault();
-        if (window.keyStates) {
-            window.keyStates['KeyQ'] = false;
-        }
-        flyUpButton.style.backgroundColor = 'rgba(0, 100, 200, 0.7)';
-    });
+    if (flyUpButton) {
+        flyUpButton.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (window.keyStates) {
+                window.keyStates['KeyQ'] = true;
+            }
+            flyUpButton.style.backgroundColor = 'rgba(0, 150, 255, 0.9)';
+        });
+        
+        flyUpButton.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            if (window.keyStates) {
+                window.keyStates['KeyQ'] = false;
+            }
+            flyUpButton.style.backgroundColor = 'rgba(0, 100, 200, 0.7)';
+        });
+        
+        flyUpButton.addEventListener('touchcancel', (e) => {
+            e.preventDefault();
+            if (window.keyStates) {
+                window.keyStates['KeyQ'] = false;
+            }
+            flyUpButton.style.backgroundColor = 'rgba(0, 100, 200, 0.7)';
+        });
+        
+        // Mouse events for testing
+        flyUpButton.addEventListener('mousedown', () => {
+            if (window.keyStates) {
+                window.keyStates['KeyQ'] = true;
+            }
+            flyUpButton.style.backgroundColor = 'rgba(0, 150, 255, 0.9)';
+        });
+        
+        flyUpButton.addEventListener('mouseup', () => {
+            if (window.keyStates) {
+                window.keyStates['KeyQ'] = false;
+            }
+            flyUpButton.style.backgroundColor = 'rgba(0, 100, 200, 0.7)';
+        });
+    }
     
     // Fly down button events
-    flyDownButton.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        if (window.keyStates) {
-            window.keyStates['KeyE'] = true;
-        }
-        flyDownButton.style.backgroundColor = 'rgba(0, 150, 255, 0.9)';
-    });
-    
-    flyDownButton.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        if (window.keyStates) {
-            window.keyStates['KeyE'] = false;
-        }
-        flyDownButton.style.backgroundColor = 'rgba(0, 100, 200, 0.7)';
-    });
-    
-    flyDownButton.addEventListener('touchcancel', (e) => {
-        e.preventDefault();
-        if (window.keyStates) {
-            window.keyStates['KeyE'] = false;
-        }
-        flyDownButton.style.backgroundColor = 'rgba(0, 100, 200, 0.7)';
-    });
-    
-    // Mouse events for testing
-    flyUpButton.addEventListener('mousedown', () => {
-        if (window.keyStates) {
-            window.keyStates['KeyQ'] = true;
-        }
-        flyUpButton.style.backgroundColor = 'rgba(0, 150, 255, 0.9)';
-    });
-    
-    flyUpButton.addEventListener('mouseup', () => {
-        if (window.keyStates) {
-            window.keyStates['KeyQ'] = false;
-        }
-        flyUpButton.style.backgroundColor = 'rgba(0, 100, 200, 0.7)';
-    });
-    
-    flyDownButton.addEventListener('mousedown', () => {
-        if (window.keyStates) {
-            window.keyStates['KeyE'] = true;
-        }
-        flyDownButton.style.backgroundColor = 'rgba(0, 150, 255, 0.9)';
-    });
-    
-    flyDownButton.addEventListener('mouseup', () => {
-        if (window.keyStates) {
-            window.keyStates['KeyE'] = false;
-        }
-        flyDownButton.style.backgroundColor = 'rgba(0, 100, 200, 0.7)';
-    });
+    if (flyDownButton) {
+        flyDownButton.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (window.keyStates) {
+                window.keyStates['KeyE'] = true;
+            }
+            flyDownButton.style.backgroundColor = 'rgba(0, 150, 255, 0.9)';
+        });
+        
+        flyDownButton.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            if (window.keyStates) {
+                window.keyStates['KeyE'] = false;
+            }
+            flyDownButton.style.backgroundColor = 'rgba(0, 100, 200, 0.7)';
+        });
+        
+        flyDownButton.addEventListener('touchcancel', (e) => {
+            e.preventDefault();
+            if (window.keyStates) {
+                window.keyStates['KeyE'] = false;
+            }
+            flyDownButton.style.backgroundColor = 'rgba(0, 100, 200, 0.7)';
+        });
+        
+        // Mouse events for testing
+        flyDownButton.addEventListener('mousedown', () => {
+            if (window.keyStates) {
+                window.keyStates['KeyE'] = true;
+            }
+            flyDownButton.style.backgroundColor = 'rgba(0, 150, 255, 0.9)';
+        });
+        
+        flyDownButton.addEventListener('mouseup', () => {
+            if (window.keyStates) {
+                window.keyStates['KeyE'] = false;
+            }
+            flyDownButton.style.backgroundColor = 'rgba(0, 100, 200, 0.7)';
+        });
+    }
 }
 
 // Joystick event handlers
