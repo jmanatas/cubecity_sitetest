@@ -248,7 +248,7 @@ export class Avatar {
     }
 
     updateThirdPersonCamera(camera) {
-        if (this.cameraMode !== 'thirdPerson' || !this.character) return;
+        if (this.cameraMode !== 'thirdPerson') return;
         
         const spherical = new THREE.Spherical();
         spherical.radius = this.cameraDistance;
@@ -263,6 +263,9 @@ export class Avatar {
         
         camera.position.copy(this.cameraTarget).add(offset);
         camera.lookAt(this.cameraTarget);
+        
+        // Debug logging - uncomment to verify camera is updating
+        console.log('Camera updated - position:', camera.position, 'target:', this.cameraTarget);
     }
 
     resetState() {

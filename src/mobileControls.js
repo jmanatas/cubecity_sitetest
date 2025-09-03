@@ -417,8 +417,8 @@ function resetCameraJoystick() {
 function updateCameraFromJoystick() {
     if (!window.avatar || !cameraJoystickActive) return;
     
-    // Camera sensitivity
-    const sensitivity = 0.03;
+    // Increased camera sensitivity for better responsiveness
+    const sensitivity = 0.05;
     
     // Update camera angles based on joystick input
     window.avatar.cameraAzimuth -= cameraJoystickVector.x * sensitivity;
@@ -428,16 +428,14 @@ function updateCameraFromJoystick() {
         Math.PI - 0.1
     );
     
-    // Force camera update in third-person mode
+    // Force immediate camera update
     if (window.avatar && window.avatar.cameraMode === 'thirdPerson') {
         window.avatar.updateThirdPersonCamera(window.camera);
     }
     
-    // Debug output
-    if (window.debugCamera) {
-        console.log('Camera joystick:', cameraJoystickVector.x.toFixed(2), cameraJoystickVector.y.toFixed(2));
-        console.log('Camera angles - Azimuth:', window.avatar.cameraAzimuth, 'Polar:', window.avatar.cameraPolar);
-    }
+    // Debug output - uncomment to verify joystick is working
+    console.log('Camera joystick:', cameraJoystickVector.x.toFixed(2), cameraJoystickVector.y.toFixed(2));
+    console.log('Camera angles - Azimuth:', window.avatar.cameraAzimuth, 'Polar:', window.avatar.cameraPolar);
 }
 
 // Toggle run mode function

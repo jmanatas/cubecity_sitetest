@@ -560,7 +560,8 @@ function animate() {
         }
 
         // Camera updates - always use third-person
-        if (avatar.character) {
+        // This is the key fix - always update the camera, not just when character exists
+        if (avatar.cameraMode === 'thirdPerson') {
             avatar.updateThirdPersonCamera(camera);
         }
 
