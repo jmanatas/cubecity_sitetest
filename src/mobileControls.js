@@ -4,11 +4,14 @@ let joystickCenterX = 0;
 let joystickCenterY = 0;
 let joystickRadius = 60;
 let joystickVector = { x: 0, y: 0 };
+let runModeEnabled = false;
 
 // Safety check function
 function ensureGlobals() {
     if (!window.keyStates) {
         window.keyStates = {};
+        // Initialize shift key state
+        window.keyStates['ShiftLeft'] = false;
     }
     if (!window.THREE) {
         console.error('THREE.js not available');
@@ -18,9 +21,11 @@ function ensureGlobals() {
 }
 
 // Initialize mobile controls
-// Initialize mobile controls
 export function initMobileControls() {
     if (!ensureGlobals()) return;
+
+    // Initialize run toggle first
+    initRunToggle();
     
     const joystick = document.getElementById('movement-joystick');
     const stick = document.getElementById('movement-stick');
@@ -236,6 +241,52 @@ export function initMobileControls() {
     }
 }
 
+// Initialize run toggle button
+function initRunToggle() {
+    const runToggleButton = document.getElementById('run-toggle-button');
+    if (!runToggleButton) return;
+    
+    runToggleButton.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        toggleRunMode();
+    });
+    
+    runToggleButton.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        toggleRunMode();
+    });
+    
+    // Also support click for accessibility
+    runToggleButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleRunMode();
+    });
+}
+
+// Toggle run mode function
+function toggleRunMode() {
+    runModeEnabled = !runModeEnabled;
+    
+    const runToggleButton = document.getElementById('run-toggle-button');
+    if (runToggleButton) {
+        if (runModeEnabled) {
+            runToggleButton.classList.add('active');
+            runToggleButton.textContent = 'RUNNING';
+            if (window.keyStates) {
+                window.keyStates['ShiftLeft'] = true;
+            }
+        } else {
+            runToggleButton.classList.remove('active');
+            runToggleButton.textContent = 'WALK';
+            if (window.keyStates) {
+                window.keyStates['ShiftLeft'] = false;
+            }
+        }
+    }
+    
+    console.log('Run mode:', runModeEnabled ? 'ON' : 'OFF');
+}
+
 // Joystick event handlers
 function handleJoystickStart(e) {
     e.preventDefault();
@@ -303,12 +354,13 @@ function resetJoystick() {
     joystickActive = false;
     joystickVector = { x: 0, y: 0 };
     
-    // Reset all movement keys
+    // Reset all movement keys but keep run state
     if (window.keyStates) {
         window.keyStates['KeyW'] = false;
         window.keyStates['KeyS'] = false;
         window.keyStates['KeyA'] = false;
         window.keyStates['KeyD'] = false;
+        // Note: We DON'T reset ShiftLeft here to maintain run toggle state
     }
 }
 

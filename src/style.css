@@ -566,3 +566,41 @@ canvas {
         display: none;
     }
 }
+
+/* Run toggle button styles */
+#run-toggle-button {
+    position: absolute;
+    top: -60px; /* Position above the joystick */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 30px;
+    background: rgba(100, 100, 255, 0.7);
+    border: 2px solid #6464ff;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    user-select: none;
+    z-index: 101;
+    transition: all 0.3s ease;
+}
+
+#run-toggle-button.active {
+    background: rgba(255, 165, 0, 0.9);
+    border-color: #ff8c00;
+    color: #000;
+}
+
+#run-toggle-button:hover {
+    transform: translateX(-50%) scale(1.1);
+}
+
+/* Adjust joystick position to make room for toggle */
+#movement-joystick {
+    margin-top: 40px; /* Create space for the toggle button */
+}
