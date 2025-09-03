@@ -1316,7 +1316,6 @@ async function init() {
 
         // Initialize mobile controls AFTER avatar is created
         initMobileControls();
-        initMobileCameraControls();
 
         renderer = new THREE.WebGLRenderer({
             antialias: true,
