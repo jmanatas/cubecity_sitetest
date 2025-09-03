@@ -570,7 +570,7 @@ canvas {
 /* Run toggle button styles */
 #run-toggle-button {
     position: absolute;
-    top: -60px; /* Position above the joystick */
+    top: -20px; /* Position above the joystick */
     left: 50%;
     transform: translateX(-50%);
     width: 60px;
