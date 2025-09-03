@@ -1305,6 +1305,9 @@ async function init() {
         avatar.cameraMode = 'thirdPerson';
         avatar.resetThirdPersonCamera(camera);
 
+        // In main.js, add this line after creating the camera:
+        window.camera = camera;
+
         // Debug capsule
         avatar.debugCapsule();
 
