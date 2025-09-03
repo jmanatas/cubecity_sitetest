@@ -428,9 +428,15 @@ function updateCameraFromJoystick() {
         Math.PI - 0.1
     );
     
+    // Force camera update in third-person mode
+    if (window.avatar && window.avatar.cameraMode === 'thirdPerson') {
+        window.avatar.updateThirdPersonCamera(window.camera);
+    }
+    
     // Debug output
     if (window.debugCamera) {
         console.log('Camera joystick:', cameraJoystickVector.x.toFixed(2), cameraJoystickVector.y.toFixed(2));
+        console.log('Camera angles - Azimuth:', window.avatar.cameraAzimuth, 'Polar:', window.avatar.cameraPolar);
     }
 }
 
