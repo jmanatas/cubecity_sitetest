@@ -46,25 +46,39 @@
     </div>
     
     <script type="module" src="./src/main.js"></script>
-    <div id="mobile-controls">
-         <div id="run-toggle-button" class="action-button run-toggle">RUN</div>
-        <div id="movement-joystick">
-            <div id="movement-stick"></div>
+
+    <script type="module" src="./src/main.js"></script>
+
+    <div id="action-buttons">
+        <div id="action-buttons-container">
+            <div id="mobile-controls">
+                <div id="run-toggle-button" class="action-button run-toggle">RUN</div>
+                <div id="movement-joystick">
+                    <div id="movement-stick"></div>
+                </div>
+            </div>
+        <div id="vertical-buttons">
+            <div id="fly-up-button" class="action-button">▲</div>
+            <div id="fly-down-button" class="action-button">▼</div>
+        </div>
+        
+        <!-- Right side: Action buttons (horizontal) and camera joystick -->
+        <div id="right-side-controls">
+            <!-- Action buttons side by side -->
+            <div id="horizontal-buttons">
+                <div id="jump-button" class="action-button">↑</div>
+                <div id="throw-button" class="action-button">○</div>
+            </div>
+            
+            <!-- Camera control joystick -->
+            <div id="camera-joystick-container">
+                <div id="camera-joystick">
+                    <div id="camera-stick"></div>
+                </div>
+            </div>
         </div>
     </div>
-    
-    <div id="action-buttons">
-<div id="action-buttons-container">
-    <div id="vertical-buttons">
-        <div id="fly-up-button" class="action-button">▲</div>
-        <div id="fly-down-button" class="action-button">▼</div>
-    </div>
-    <div id="horizontal-buttons">
-        <div id="jump-button" class="action-button">↑</div>
-        <div id="throw-button" class="action-button">○</div>
-    </div>
 </div>
-    </div>
     
 </body>
 </html>

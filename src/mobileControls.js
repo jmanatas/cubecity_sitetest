@@ -6,6 +6,13 @@ let joystickRadius = 60;
 let joystickVector = { x: 0, y: 0 };
 let runModeEnabled = false;
 
+// Camera joystick variables
+let cameraJoystickActive = false;
+let cameraJoystickCenterX = 0;
+let cameraJoystickCenterY = 0;
+let cameraJoystickRadius = 50;
+let cameraJoystickVector = { x: 0, y: 0 };
+
 // Safety check function
 function ensureGlobals() {
     if (!window.keyStates) {
@@ -29,6 +36,10 @@ export function initMobileControls() {
     
     const joystick = document.getElementById('movement-joystick');
     const stick = document.getElementById('movement-stick');
+
+    // Initialize camera joystick
+    initCameraJoystick();
+
     const jumpButton = document.getElementById('jump-button');
     const throwButton = document.getElementById('throw-button');
     const flyUpButton = document.getElementById('fly-up-button');
@@ -263,6 +274,166 @@ function initRunToggle() {
     });
 }
 
+// Initialize camera joystick
+function initCameraJoystick() {
+    const cameraJoystick = document.getElementById('camera-joystick');
+    const cameraStick = document.getElementById('camera-stick');
+    
+    if (!cameraJoystick || !cameraStick) {
+        console.warn('Camera joystick elements not found');
+        return;
+    }
+    
+    // Get camera joystick center position
+    const updateCameraJoystickPosition = () => {
+        const rect = cameraJoystick.getBoundingClientRect();
+        cameraJoystickCenterX = rect.left + rect.width / 2;
+        cameraJoystickCenterY = rect.top + rect.height / 2;
+        cameraJoystickRadius = rect.width / 2;
+    };
+    
+    // Initial position update
+    updateCameraJoystickPosition();
+    
+    // Update position on window resize
+    window.addEventListener('resize', updateCameraJoystickPosition);
+    
+    // Camera joystick event handlers
+    cameraJoystick.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        updateCameraJoystickPosition();
+        handleCameraJoystickStart(e);
+    });
+    
+    cameraJoystick.addEventListener('touchmove', function(e) {
+        e.preventDefault();
+        handleCameraJoystickMove(e);
+    });
+    
+    cameraJoystick.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        handleCameraJoystickEnd(e);
+    });
+    
+    cameraJoystick.addEventListener('touchcancel', function(e) {
+        e.preventDefault();
+        handleCameraJoystickEnd(e);
+    });
+    
+    // Mouse events for testing
+    cameraJoystick.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        updateCameraJoystickPosition();
+        handleCameraJoystickStart(e);
+    });
+    
+    document.addEventListener('mousemove', function(e) {
+        if (cameraJoystickActive) {
+            handleCameraJoystickMove(e);
+        }
+    });
+    
+    document.addEventListener('mouseup', function(e) {
+        if (cameraJoystickActive) {
+            handleCameraJoystickEnd(e);
+        }
+    });
+}
+
+// Camera joystick event handlers
+function handleCameraJoystickStart(e) {
+    e.preventDefault();
+    cameraJoystickActive = true;
+    
+    if (e.type === 'touchstart') {
+        const touch = e.touches[0];
+        updateCameraJoystickPosition(touch.clientX, touch.clientY);
+    } else if (e.type === 'mousedown') {
+        updateCameraJoystickPosition(e.clientX, e.clientY);
+    }
+}
+
+function handleCameraJoystickMove(e) {
+    if (!cameraJoystickActive) return;
+    e.preventDefault();
+    
+    let clientX, clientY;
+    
+    if (e.type === 'touchmove') {
+        const touch = e.touches[0];
+        clientX = touch.clientX;
+        clientY = touch.clientY;
+    } else if (e.type === 'mousemove') {
+        clientX = e.clientX;
+        clientY = e.clientY;
+    }
+    
+    updateCameraJoystickPosition(clientX, clientY);
+}
+
+function handleCameraJoystickEnd(e) {
+    e.preventDefault();
+    resetCameraJoystick();
+}
+
+function updateCameraJoystickPosition(x, y) {
+    const cameraStick = document.getElementById('camera-stick');
+    if (!cameraStick) return;
+    
+    // Calculate distance from center
+    const dx = x - cameraJoystickCenterX;
+    const dy = y - cameraJoystickCenterY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    // Limit to joystick radius
+    const limitedDistance = Math.min(distance, cameraJoystickRadius);
+    const angle = Math.atan2(dy, dx);
+    
+    // Calculate stick position
+    const stickX = Math.cos(angle) * limitedDistance;
+    const stickY = Math.sin(angle) * limitedDistance;
+    
+    // Update stick visual position
+    cameraStick.style.transform = `translate(${stickX}px, ${stickY}px)`;
+    
+    // Normalize joystick vector for camera control
+    cameraJoystickVector.x = limitedDistance > 0 ? dx / cameraJoystickRadius : 0;
+    cameraJoystickVector.y = limitedDistance > 0 ? dy / cameraJoystickRadius : 0;
+    
+    // Update camera based on joystick input
+    updateCameraFromJoystick();
+}
+
+function resetCameraJoystick() {
+    const cameraStick = document.getElementById('camera-stick');
+    if (cameraStick) {
+        cameraStick.style.transform = 'translate(0, 0)';
+    }
+    
+    cameraJoystickActive = false;
+    cameraJoystickVector = { x: 0, y: 0 };
+}
+
+function updateCameraFromJoystick() {
+    if (!window.avatar || !cameraJoystickActive) return;
+    
+    // Camera sensitivity
+    const sensitivity = 0.03;
+    
+    // Update camera angles based on joystick input
+    window.avatar.cameraAzimuth -= cameraJoystickVector.x * sensitivity;
+    window.avatar.cameraPolar = window.THREE.MathUtils.clamp(
+        window.avatar.cameraPolar - (cameraJoystickVector.y * sensitivity),
+        0.1,
+        Math.PI - 0.1
+    );
+    
+    // Debug output
+    if (window.debugCamera) {
+        console.log('Camera joystick:', cameraJoystickVector.x.toFixed(2), cameraJoystickVector.y.toFixed(2));
+    }
+}
+
 // Toggle run mode function
 function toggleRunMode() {
     runModeEnabled = !runModeEnabled;
@@ -474,10 +645,13 @@ export function checkTouchDevice() {
             gravityIndicator.style.right = '20px';
         }
     }
-    // Continuous update for joystick input
+    // Continuous update for both joysticks
     function updateJoystickInput() {
         if (joystickActive) {
             updateKeyStatesFromJoystick();
+        }
+        if (cameraJoystickActive) {
+            updateCameraFromJoystick();
         }
         requestAnimationFrame(updateJoystickInput);
     }
