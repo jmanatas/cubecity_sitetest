@@ -18,6 +18,7 @@ function ensureGlobals() {
 }
 
 // Initialize mobile controls
+// Initialize mobile controls
 export function initMobileControls() {
     if (!ensureGlobals()) return;
     
@@ -33,24 +34,48 @@ export function initMobileControls() {
         return;
     }
     
-    if (!joystick || !stick) return;
-    
     // Get joystick center position
-    const rect = joystick.getBoundingClientRect();
-    joystickCenterX = rect.left + rect.width / 2;
-    joystickCenterY = rect.top + rect.height / 2;
-    joystickRadius = rect.width / 2;
+    const updateJoystickPosition = () => {
+        const rect = joystick.getBoundingClientRect();
+        joystickCenterX = rect.left + rect.width / 2;
+        joystickCenterY = rect.top + rect.height / 2;
+        joystickRadius = rect.width / 2;
+    };
+    
+    // Initial position update
+    updateJoystickPosition();
+    
+    // Update position on window resize
+    window.addEventListener('resize', updateJoystickPosition);
     
     // Joystick touch events
-    joystick.addEventListener('touchstart', handleJoystickStart);
-    joystick.addEventListener('touchmove', handleJoystickMove);
-    joystick.addEventListener('touchend', handleJoystickEnd);
-    joystick.addEventListener('touchcancel', handleJoystickEnd);
+    joystick.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        updateJoystickPosition();
+        handleJoystickStart(e);
+    });
+    
+    joystick.addEventListener('touchmove', function(e) {
+        e.preventDefault();
+        handleJoystickMove(e);
+    });
+    
+    joystick.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        handleJoystickEnd(e);
+    });
+    
+    joystick.addEventListener('touchcancel', function(e) {
+        e.preventDefault();
+        handleJoystickEnd(e);
+    });
     
     // Also support mouse events for testing on desktop
-    joystick.addEventListener('mousedown', handleJoystickStart);
-    document.addEventListener('mousemove', handleJoystickMove);
-    document.addEventListener('mouseup', handleJoystickEnd);
+    joystick.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        updateJoystickPosition();
+        handleJoystickStart(e);
+    });
     
     // Prevent default on action buttons to avoid scrolling
     if (jumpButton) {
@@ -293,29 +318,33 @@ function updateKeyStatesFromJoystick() {
     // Deadzone to prevent accidental movement
     const deadzone = 0.2;
     
-    // Forward/backward movement (W/S keys)
-    if (joystickVector.y < -deadzone) {
-        window.keyStates['KeyW'] = true;
-        window.keyStates['KeyS'] = false;
-    } else if (joystickVector.y > deadzone) {
-        window.keyStates['KeyW'] = false;
-        window.keyStates['KeyS'] = true;
-    } else {
-        window.keyStates['KeyW'] = false;
-        window.keyStates['KeyS'] = false;
+    // Reset all movement keys first
+    window.keyStates['KeyW'] = false;
+    window.keyStates['KeyS'] = false;
+    window.keyStates['KeyA'] = false;
+    window.keyStates['KeyD'] = false;
+    
+    // Only set keys if joystick is active and beyond deadzone
+    if (joystickActive && (Math.abs(joystickVector.x) > deadzone || Math.abs(joystickVector.y) > deadzone)) {
+        // Forward/backward movement (W/S keys)
+        if (joystickVector.y < -deadzone) {
+            window.keyStates['KeyW'] = true;
+        } else if (joystickVector.y > deadzone) {
+            window.keyStates['KeyS'] = true;
+        }
+        
+        // Left/right movement (A/D keys)
+        if (joystickVector.x < -deadzone) {
+            window.keyStates['KeyA'] = true;
+        } else if (joystickVector.x > deadzone) {
+            window.keyStates['KeyD'] = true;
+        }
     }
     
-    // Left/right movement (A/D keys)
-    if (joystickVector.x < -deadzone) {
-        window.keyStates['KeyA'] = true;
-        window.keyStates['KeyD'] = false;
-    } else if (joystickVector.x > deadzone) {
-        window.keyStates['KeyA'] = false;
-        window.keyStates['KeyD'] = true;
-    } else {
-        window.keyStates['KeyA'] = false;
-        window.keyStates['KeyD'] = false;
-    }
+    // Debug log to verify joystick is working
+    console.log('Joystick:', joystickVector.x.toFixed(2), joystickVector.y.toFixed(2));
+    console.log('Keys - W:', window.keyStates['KeyW'], 'S:', window.keyStates['KeyS'], 
+                'A:', window.keyStates['KeyA'], 'D:', window.keyStates['KeyD']);
 }
 
 // Add camera control for mobile (swipe to look around)
@@ -393,4 +422,14 @@ export function checkTouchDevice() {
             gravityIndicator.style.right = '20px';
         }
     }
+    // Continuous update for joystick input
+    function updateJoystickInput() {
+        if (joystickActive) {
+            updateKeyStatesFromJoystick();
+        }
+        requestAnimationFrame(updateJoystickInput);
+    }
+
+    // Start the update loop
+    updateJoystickInput();
 }

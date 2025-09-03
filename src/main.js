@@ -1272,12 +1272,6 @@ let gravityIndicator;
 // 3. Initializes game systems (physics, controls, UI)
 // 4. Configures lighting and world geometry
 // 5. Starts the animation loop
-// Main initialization function that sets up the entire Three.js application:
-// 1. Creates core Three.js components (scene, camera, renderer)
-// 2. Loads assets (JSON data, textures, character model)
-// 3. Initializes game systems (physics, controls, UI)
-// 4. Configures lighting and world geometry
-// 5. Starts the animation loop
 async function init() {
     try {
         // Create and configure stats FIRST
@@ -1605,7 +1599,7 @@ async function init() {
     }
 }
 
-// These global variables are accessible to mobileControls.js
+// Make sure these global variables are accessible to mobileControls.js
 window.keyStates = keyStates;
 window.avatar = avatar;
 window.throwBall = throwBall;

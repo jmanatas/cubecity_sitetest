@@ -495,13 +495,29 @@ canvas {
     transition: transform 0.1s ease;
 }
 
-#action-buttons {
+/* Replace the existing #action-buttons styles */
+#action-buttons-container {
     position: fixed;
     bottom: 20px;
     right: 20px;
     z-index: 100;
-    display: none; /* Hidden by default, shown on touch devices */
+    display: none;
     pointer-events: auto;
+    display: flex;
+    align-items: flex-end;
+    gap: 20px;
+}
+
+#vertical-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+#horizontal-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
 
 .action-button {
@@ -509,7 +525,6 @@ canvas {
     height: 70px;
     background: rgba(0, 0, 0, 0.5);
     border-radius: 50%;
-    margin-bottom: 15px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -530,11 +545,20 @@ canvas {
     border: 2px solid #ff0000;
 }
 
+#fly-up-button {
+    background: rgba(0, 100, 200, 0.7);
+    border: 2px solid #0088ff;
+}
+
+#fly-down-button {
+    background: rgba(0, 100, 200, 0.7);
+    border: 2px solid #0088ff;
+}
+
 /* Show controls on touch devices */
 @media (hover: none) and (pointer: coarse) {
-    #mobile-controls,
-    #action-buttons {
-        display: block;
+    #action-buttons-container {
+        display: flex;
     }
     
     /* Hide keyboard controls info on mobile */
