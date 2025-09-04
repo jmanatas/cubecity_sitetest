@@ -15,15 +15,28 @@ let cameraJoystickVector = { x: 0, y: 0 };
 
 // Safety check function
 function ensureGlobals() {
+    console.log('Checking globals:', {
+        hasAvatar: !!window.avatar,
+        hasCamera: !!window.camera,
+        hasTHREE: !!window.THREE,
+        hasKeyStates: !!window.keyStates
+    });
+    
     if (!window.keyStates) {
         window.keyStates = {};
-        // Initialize shift key state
         window.keyStates['ShiftLeft'] = false;
     }
+    
+    if (!window.avatar || !window.camera) {
+        console.error('Avatar or camera not available yet');
+        return false;
+    }
+    
     if (!window.THREE) {
         console.error('THREE.js not available');
         return false;
     }
+    
     return true;
 }
 
@@ -274,7 +287,7 @@ function initRunToggle() {
     });
 }
 
-// Initialize camera joystick
+// In mobileControls.js, update the initCameraJoystick function:
 function initCameraJoystick() {
     const cameraJoystick = document.getElementById('camera-joystick');
     const cameraStick = document.getElementById('camera-stick');
@@ -299,45 +312,73 @@ function initCameraJoystick() {
     window.addEventListener('resize', updateCameraJoystickPosition);
     
     // Camera joystick event handlers
-    cameraJoystick.addEventListener('touchstart', function(e) {
+    const handleCameraStart = function(e) {
         e.preventDefault();
+        cameraJoystickActive = true;
         updateCameraJoystickPosition();
-        handleCameraJoystickStart(e);
-    });
+        
+        if (e.type === 'touchstart') {
+            const touch = e.touches[0];
+            updateCameraJoystickPosition(touch.clientX, touch.clientY);
+        } else if (e.type === 'mousedown') {
+            updateCameraJoystickPosition(e.clientX, e.clientY);
+        }
+    };
     
-    cameraJoystick.addEventListener('touchmove', function(e) {
+    const handleCameraMove = function(e) {
+        if (!cameraJoystickActive) return;
         e.preventDefault();
-        handleCameraJoystickMove(e);
-    });
+        
+        let clientX, clientY;
+        
+        if (e.type === 'touchmove') {
+            const touch = e.touches[0];
+            clientX = touch.clientX;
+            clientY = touch.clientY;
+        } else if (e.type === 'mousemove') {
+            clientX = e.clientX;
+            clientY = e.clientY;
+        }
+        
+        // Calculate joystick position
+        const dx = clientX - cameraJoystickCenterX;
+        const dy = clientY - cameraJoystickCenterY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // Limit to joystick radius
+        const limitedDistance = Math.min(distance, cameraJoystickRadius);
+        const angle = Math.atan2(dy, dx);
+        
+        // Calculate stick position
+        const stickX = Math.cos(angle) * limitedDistance;
+        const stickY = Math.sin(angle) * limitedDistance;
+        
+        // Update stick visual position
+        cameraStick.style.transform = `translate(${stickX}px, ${stickY}px)`;
+        
+        // Normalize joystick vector for camera control
+        cameraJoystickVector.x = limitedDistance > 0 ? dx / cameraJoystickRadius : 0;
+        cameraJoystickVector.y = limitedDistance > 0 ? dy / cameraJoystickRadius : 0;
+        
+        // Update camera based on joystick input
+        updateCameraFromJoystick();
+    };
     
-    cameraJoystick.addEventListener('touchend', function(e) {
+    const handleCameraEnd = function(e) {
         e.preventDefault();
-        handleCameraJoystickEnd(e);
-    });
+        resetCameraJoystick();
+    };
     
-    cameraJoystick.addEventListener('touchcancel', function(e) {
-        e.preventDefault();
-        handleCameraJoystickEnd(e);
-    });
+    // Add event listeners
+    cameraJoystick.addEventListener('touchstart', handleCameraStart);
+    cameraJoystick.addEventListener('touchmove', handleCameraMove);
+    cameraJoystick.addEventListener('touchend', handleCameraEnd);
+    cameraJoystick.addEventListener('touchcancel', handleCameraEnd);
     
     // Mouse events for testing
-    cameraJoystick.addEventListener('mousedown', function(e) {
-        e.preventDefault();
-        updateCameraJoystickPosition();
-        handleCameraJoystickStart(e);
-    });
-    
-    document.addEventListener('mousemove', function(e) {
-        if (cameraJoystickActive) {
-            handleCameraJoystickMove(e);
-        }
-    });
-    
-    document.addEventListener('mouseup', function(e) {
-        if (cameraJoystickActive) {
-            handleCameraJoystickEnd(e);
-        }
-    });
+    cameraJoystick.addEventListener('mousedown', handleCameraStart);
+    document.addEventListener('mousemove', handleCameraMove);
+    document.addEventListener('mouseup', handleCameraEnd);
 }
 
 // Camera joystick event handlers
@@ -353,6 +394,29 @@ function handleCameraJoystickStart(e) {
     }
 }
 
+// In mobileControls.js, replace the updateCameraFromJoystick function:
+function updateCameraFromJoystick() {
+    if (!window.avatar || !cameraJoystickActive) return;
+    
+    // Increased camera sensitivity for better responsiveness
+    const sensitivity = 0.05;
+    
+    // Update camera angles based on joystick input
+    // Note: We need to invert the Y-axis for natural camera movement
+    window.avatar.cameraAzimuth -= cameraJoystickVector.x * sensitivity;
+    window.avatar.cameraPolar = window.THREE.MathUtils.clamp(
+        window.avatar.cameraPolar + (cameraJoystickVector.y * sensitivity), // Changed to + for natural movement
+        0.1,
+        Math.PI - 0.1
+    );
+    
+    // Force immediate camera update
+    if (window.avatar && window.avatar.cameraMode === 'thirdPerson') {
+        window.avatar.updateThirdPersonCamera(window.camera);
+    }
+}
+
+// Also fix the handleCameraJoystickMove function:
 function handleCameraJoystickMove(e) {
     if (!cameraJoystickActive) return;
     e.preventDefault();
@@ -368,7 +432,31 @@ function handleCameraJoystickMove(e) {
         clientY = e.clientY;
     }
     
-    updateCameraJoystickPosition(clientX, clientY);
+    // Calculate joystick position
+    const dx = clientX - cameraJoystickCenterX;
+    const dy = clientY - cameraJoystickCenterY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    // Limit to joystick radius
+    const limitedDistance = Math.min(distance, cameraJoystickRadius);
+    const angle = Math.atan2(dy, dx);
+    
+    // Calculate stick position
+    const stickX = Math.cos(angle) * limitedDistance;
+    const stickY = Math.sin(angle) * limitedDistance;
+    
+    // Update stick visual position
+    const cameraStick = document.getElementById('camera-stick');
+    if (cameraStick) {
+        cameraStick.style.transform = `translate(${stickX}px, ${stickY}px)`;
+    }
+    
+    // Normalize joystick vector for camera control
+    cameraJoystickVector.x = limitedDistance > 0 ? dx / cameraJoystickRadius : 0;
+    cameraJoystickVector.y = limitedDistance > 0 ? dy / cameraJoystickRadius : 0;
+    
+    // Update camera based on joystick input
+    updateCameraFromJoystick();
 }
 
 function handleCameraJoystickEnd(e) {
@@ -414,29 +502,16 @@ function resetCameraJoystick() {
     cameraJoystickVector = { x: 0, y: 0 };
 }
 
-function updateCameraFromJoystick() {
-    if (!window.avatar || !cameraJoystickActive) return;
-    
-    // Increased camera sensitivity for better responsiveness
-    const sensitivity = 0.05;
-    
-    // Update camera angles based on joystick input
-    window.avatar.cameraAzimuth -= cameraJoystickVector.x * sensitivity;
-    window.avatar.cameraPolar = window.THREE.MathUtils.clamp(
-        window.avatar.cameraPolar - (cameraJoystickVector.y * sensitivity),
-        0.1,
-        Math.PI - 0.1
-    );
-    
-    // Force immediate camera update
-    if (window.avatar && window.avatar.cameraMode === 'thirdPerson') {
-        window.avatar.updateThirdPersonCamera(window.camera);
+// Add this function to continuously update the camera:
+function cameraJoystickUpdateLoop() {
+    if (cameraJoystickActive && cameraJoystickVector.x !== 0 && cameraJoystickVector.y !== 0) {
+        updateCameraFromJoystick();
     }
-    
-    // Debug output - uncomment to verify joystick is working
-    console.log('Camera joystick:', cameraJoystickVector.x.toFixed(2), cameraJoystickVector.y.toFixed(2));
-    console.log('Camera angles - Azimuth:', window.avatar.cameraAzimuth, 'Polar:', window.avatar.cameraPolar);
+    requestAnimationFrame(cameraJoystickUpdateLoop);
 }
+
+// Start the update loop at the end of the file:
+cameraJoystickUpdateLoop();
 
 // Toggle run mode function
 function toggleRunMode() {
@@ -572,58 +647,6 @@ function updateKeyStatesFromJoystick() {
     console.log('Joystick:', joystickVector.x.toFixed(2), joystickVector.y.toFixed(2));
     console.log('Keys - W:', window.keyStates['KeyW'], 'S:', window.keyStates['KeyS'], 
                 'A:', window.keyStates['KeyA'], 'D:', window.keyStates['KeyD']);
-}
-
-// Add camera control for mobile (swipe to look around)
-export function initMobileCameraControls() {
-    if (!ensureGlobals()) return;
-    
-    let touchStartX = 0;
-    let touchStartY = 0;
-    let isCameraMoving = false;
-    
-    document.addEventListener('touchstart', (e) => {
-        // Only handle single-finger touches outside of UI elements
-        if (e.touches.length === 1 && 
-            !e.target.closest('#mobile-controls') && 
-            !e.target.closest('#action-buttons') &&
-            !e.target.closest('#object-list')) {
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-            isCameraMoving = true;
-        }
-    });
-    
-    document.addEventListener('touchmove', (e) => {
-        if (!isCameraMoving || e.touches.length !== 1 || !window.avatar) return;
-        
-        const touchX = e.touches[0].clientX;
-        const touchY = e.touches[0].clientY;
-        
-        const deltaX = touchX - touchStartX;
-        const deltaY = touchY - touchStartY;
-        
-        // Update camera angles (sensitivity adjustment)
-        window.avatar.cameraAzimuth -= deltaX * 0.005;
-        window.avatar.cameraPolar = window.THREE.MathUtils.clamp(
-            window.avatar.cameraPolar - (deltaY * 0.005),
-            0.1,
-            Math.PI - 0.1
-        );
-        
-        touchStartX = touchX;
-        touchStartY = touchY;
-        
-        e.preventDefault();
-    });
-    
-    document.addEventListener('touchend', () => {
-        isCameraMoving = false;
-    });
-    
-    document.addEventListener('touchcancel', () => {
-        isCameraMoving = false;
-    });
 }
 
 // Detect touch device and adjust UI accordingly

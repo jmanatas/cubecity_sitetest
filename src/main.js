@@ -1314,7 +1314,10 @@ async function init() {
         // Setup spheres (now physicsWorld is initialized)
         setupSpheres();
 
-        // Initialize mobile controls AFTER avatar is created
+        // ADD THIS LINE RIGHT HERE - after avatar and camera are fully set up
+        window.avatar = avatar;
+
+        // NOW initialize mobile controls
         initMobileControls();
 
         renderer = new THREE.WebGLRenderer({
@@ -1604,7 +1607,6 @@ async function init() {
 
 // Make sure these global variables are accessible to mobileControls.js
 window.keyStates = keyStates;
-window.avatar = avatar;
 window.throwBall = throwBall;
 window.THREE = THREE; // Add this line to export THREE
 
