@@ -9,7 +9,7 @@ import { ShaderPass } from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/
 import { FXAAShader } from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/shaders/FXAAShader.js';
 import { Avatar } from './avatar.js';
 import { PhysicsWorld, createPhysicsSphere, GRAVITY, SPHERE_RADIUS, STEPS_PER_FRAME } from './physics.js';
-import { initMobileControls, initMobileCameraControls, checkTouchDevice } from './mobileControls.js';
+import { initMobileControls, initMobileControls, checkTouchDevice } from './mobileControls.js';
 
 const NUM_SPHERES = 25; // Number of spheres to create
 const PLAYER_HEIGHT = 1.8; // Height of the player capsule
