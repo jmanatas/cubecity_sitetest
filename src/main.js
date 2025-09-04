@@ -195,80 +195,82 @@ function throwBall() {
 function createGravityIndicator() {
     const indicator = document.createElement('div');
     indicator.id = 'gravity-indicator';
-    indicator.style.position = 'fixed';
-    indicator.style.top = '60px';
-    indicator.style.right = '20px';
-    indicator.style.padding = '10px 15px';
-    indicator.style.backgroundColor = 'rgba(0,0,0,0.7)';
-    indicator.style.color = 'white';
-    indicator.style.borderRadius = '5px';
-    indicator.style.zIndex = '100';
-    indicator.style.display = 'block';
-    indicator.style.fontFamily = 'Arial, sans-serif';
-    indicator.style.fontSize = '14px';
-    indicator.style.fontWeight = 'bold';
-    indicator.style.border = '2px solid #00ff00'; // Green border when on
-    indicator.style.transition = 'all 0.3s ease'; // Smooth transitions
-    indicator.style.cursor = 'pointer'; // Add pointer cursor
-    indicator.textContent = 'GRAVITY: ON';
-    
-    // Add click event listener
+    indicator.textContent = 'GRAVITY ON';
     indicator.addEventListener('click', toggleGravity);
+    
+    // Add proper styling classes
+    indicator.classList.add('action-button');
+    
+    // Add hover effects
+    indicator.addEventListener('mouseenter', function() {
+        if (gravityEnabled) {
+            this.style.transform = 'scale(1.05)';
+            this.style.boxShadow = '0 0 10px rgba(0, 136, 255, 0.5)';
+            this.style.backgroundColor = 'rgba(0, 100, 200, 0.9)';
+        } else {
+            this.style.transform = 'scale(1.05)';
+            this.style.boxShadow = '0 0 10px rgba(255, 0, 0, 0.5)';
+            this.style.backgroundColor = 'rgba(128, 0, 0, 0.9)';
+        }
+    });
+
+    indicator.addEventListener('mouseleave', function() {
+        this.style.transform = '';
+        this.style.boxShadow = '';
+        if (gravityEnabled) {
+            this.style.backgroundColor = 'rgba(0, 100, 200, 0.7)';
+        } else {
+            this.style.backgroundColor = 'rgba(128, 0, 0, 0.7)';
+        }
+    });
     
     document.body.appendChild(indicator);
     return indicator;
 }
+
 function toggleGravity() {
     gravityEnabled = !gravityEnabled;
     avatar.gravityEnabled = gravityEnabled; 
     
-    // CRITICAL: Reset vertical velocity when switching modes
+    // Reset vertical velocity when switching modes
     avatar.velocity.y = 0;
     
     // Update visual indicator
+    const gravityIndicator = document.getElementById('gravity-indicator');
     if (gravityIndicator) {
-        gravityIndicator.textContent = gravityEnabled ? 'GRAVITY: ON' : 'GRAVITY: OFF';
-        
         if (gravityEnabled) {
+            gravityIndicator.textContent = 'GRAVITY ON';
+            gravityIndicator.style.backgroundColor = 'rgba(0, 100, 200, 0.7)';
+            gravityIndicator.style.border = '2px solid #0088ff';
+            gravityIndicator.classList.remove('off');
             avatar.setAnimation('fly');
             avatar.isJumping = false;
-            gravityIndicator.style.color = 'white';
-            gravityIndicator.style.backgroundColor = 'rgba(0,0,0,0.7)';
-            gravityIndicator.style.border = '2px solid #00ff00';
-            gravityIndicator.classList.remove('off');
         } else {
+            gravityIndicator.textContent = 'GRAVITY OFF';
+            gravityIndicator.style.backgroundColor = 'rgba(128, 0, 0, 0.7)';
+            gravityIndicator.style.border = '2px solid #ff0000';
+            gravityIndicator.classList.add('off');
             const { animation } = avatar.controller.update(0.016, keyStates, avatar.cameraAzimuth);
             avatar.setAnimation(animation);
-            gravityIndicator.style.color = '#ff6b6b';
-            gravityIndicator.style.backgroundColor = 'rgba(0,0,0,0.9)';
-            gravityIndicator.style.border = '2px solid #ff6b6b';
-            gravityIndicator.classList.add('off');
         }
     }
     
-    // CRITICAL FIX: Reset jumping state when gravity is disabled
+    // Reset jumping state when gravity is disabled
     if (!gravityEnabled && avatar.isJumping) {
         avatar.isJumping = false;
-        
-        // Force fly animation when gravity is turned OFF during jump
         avatar.setAnimation('fly');
     } else if (!gravityEnabled) {
-        // Gravity turned OFF - play fly animation
         avatar.setAnimation('fly');
     } else {
-        // Gravity turned ON - return to appropriate animation based on movement
         const { animation } = avatar.controller.update(0.016, keyStates, avatar.cameraAzimuth);
         avatar.setAnimation(animation);
     }
     
     if (!gravityEnabled) {
-        // When disabling gravity, stop vertical movement
         avatar.velocity.y = 0;
-        avatar.onFloor = false; // Ensure we're not considered on floor
     } else {
-        // When ENABLING gravity, force the avatar to not be on floor
         avatar.onFloor = false;
-        avatar.velocity.y = -1.0; // Small downward push
+        avatar.velocity.y = -1.0;
     }
 }
 
@@ -281,19 +283,6 @@ function setupTeleportButton() {
         console.error("Teleport button not found");
         return;
     }
-    
-    // Add hover effects
-    teleportBtn.addEventListener('mouseenter', function() {
-        this.style.transform = 'scale(1.05)';
-        this.style.boxShadow = '0 0 10px rgba(74, 175, 255, 0.5)';
-        this.style.backgroundColor = 'rgba(0,0,0,0.9)';
-    });
-    
-    teleportBtn.addEventListener('mouseleave', function() {
-        this.style.transform = '';
-        this.style.boxShadow = '';
-        this.style.backgroundColor = 'rgba(0,0,0,0.7)';
-    });
     
     teleportBtn.onclick = function() {
         // Add visual feedback
@@ -818,9 +807,6 @@ function setupEventListeners() {
                     if (gravityEnabled) {
                         avatar.setAnimation('fly');
                         avatar.isJumping = false;
-                        gravityIndicator.style.color = 'white';
-                        gravityIndicator.style.backgroundColor = 'rgba(0,0,0,0.7)';
-                        gravityIndicator.style.border = '2px solid #00ff00';
                     } else {
                         const { animation } = avatar.controller.update(0.016, keyStates, avatar.cameraAzimuth);
                         avatar.setAnimation(animation);

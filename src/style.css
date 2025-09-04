@@ -699,3 +699,68 @@ canvas {
         font-size: 18px;
     }
 }
+
+/* Gravity Indicator*/
+#gravity-indicator {
+    position: fixed;
+    bottom: 285px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    background: rgba(0, 100, 200, 0.7);
+    border: 2px solid #0088ff;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    font-family: Arial, sans-serif;
+    cursor: pointer;
+    z-index: 100;
+    transition: all 0.3s ease;
+    text-align: center;
+    line-height: 1.2;
+    padding: 5px;
+    box-sizing: border-box;
+}
+
+#gravity-indicator.off {
+    background: rgba(128, 0, 0, 0.7);
+    border: 2px solid #ff0000;
+}
+
+#gravity-indicator:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 10px rgba(0, 136, 255, 0.5);
+    background: rgba(0, 100, 200, 0.9);
+}
+
+#gravity-indicator.off:hover {
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+    background: rgba(128, 0, 0, 0.9);
+}
+
+/* Remove the vertical buttons margin since we're positioning absolutely */
+#vertical-buttons {
+    margin-bottom: 0; /* Remove the previous margin */
+}
+
+/* Show gravity indicator on mobile */
+@media (hover: none) and (pointer: coarse) {
+    #gravity-indicator {
+        display: flex !important;
+    }
+}
+
+/* Adjust for smaller mobile screens */
+@media (max-width: 768px) {
+    #gravity-indicator {
+        bottom: 240px; /* Adjust position for smaller screens */
+        right: 15px;
+        width: 55px;
+        height: 55px;
+        font-size: 11px;
+    }
+}
