@@ -479,6 +479,7 @@ canvas {
     width: 120px;
     height: 120px;
     background: rgba(0, 0, 0, 0.5);
+    border: 2px solid rgba(255, 255, 255, 0.5);
     border-radius: 50%;
     position: relative;
     touch-action: none;
@@ -487,7 +488,7 @@ canvas {
 #movement-stick {
     width: 50px;
     height: 50px;
-    background: rgba(255, 255, 255, 0.7);
+    background: rgba(200, 200, 255, 0.8);
     border-radius: 50%;
     position: absolute;
     top: 35px;
@@ -516,20 +517,21 @@ canvas {
 
 #horizontal-buttons {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 15px;
+    justify-content: center;
 }
 
 .action-button {
-    width: 70px;
-    height: 70px;
+    width: 60px; /* Make them square */
+    height: 60px; /* Make them square */
     background: rgba(0, 0, 0, 0.5);
-    border-radius: 50%;
+    border-radius: 15px; /* Slightly rounded corners instead of circles */
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 24px;
+    font-size: 20px;
     font-weight: bold;
     touch-action: none;
     user-select: none;
@@ -613,20 +615,14 @@ canvas {
     z-index: 100;
     display: flex;
     align-items: flex-end;
-    gap: 20px;
+    gap: 10px;
 }
 
 #right-side-controls {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 15px;
-}
-
-#horizontal-buttons {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
+    gap: 20px;
 }
 
 /* Camera joystick styles */
@@ -636,8 +632,8 @@ canvas {
 }
 
 #camera-joystick {
-    width: 100px;
-    height: 100px;
+    width: 120px;
+    height: 120px;
     background: rgba(255, 255, 255, 0.2);
     border: 2px solid rgba(255, 255, 255, 0.5);
     border-radius: 50%;
@@ -646,13 +642,13 @@ canvas {
 }
 
 #camera-stick {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     background: rgba(200, 200, 255, 0.8);
     border-radius: 50%;
     position: absolute;
-    top: 30px;
-    left: 30px;
+    top: 35px;
+    left: 35px;
     transition: transform 0.1s ease;
 }
 
