@@ -668,7 +668,7 @@ export function checkTouchDevice() {
         // Adjust UI for mobile
         const gravityIndicator = document.getElementById('gravity-indicator');
         if (gravityIndicator) {
-            gravityIndicator.style.top = '20px';
+            gravityIndicator.style.bottom = '250px';
             gravityIndicator.style.right = '20px';
         }
     }

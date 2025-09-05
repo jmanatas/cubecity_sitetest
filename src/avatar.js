@@ -265,7 +265,7 @@ export class Avatar {
         camera.lookAt(this.cameraTarget);
         
         // Debug logging - uncomment to verify camera is updating
-        console.log('Camera updated - position:', camera.position, 'target:', this.cameraTarget);
+        //console.log('Camera updated - position:', camera.position, 'target:', this.cameraTarget);
     }
 
     resetState() {

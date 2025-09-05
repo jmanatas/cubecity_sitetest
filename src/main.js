@@ -198,7 +198,7 @@ function createGravityIndicator() {
     indicator.textContent = 'GRAVITY ON';
     indicator.addEventListener('click', toggleGravity);
     
-    // Add proper styling classes
+    // Add proper styling classes - let CSS handle the positioning
     indicator.classList.add('action-button');
     
     // Add hover effects
@@ -910,38 +910,6 @@ function setupEventListeners() {
             document.body.classList.remove('highlight-mode', 'clickable');
         }
         });
-
-    /*
-    // Alt to highlight objects
-    document.addEventListener('keydown', function(event) {
-        keyStates[event.code] = true;
-        
-        // Check if Alt is pressed
-        if (event.code === 'AltLeft') {
-            highlightEffectEnabled = true;
-            document.body.classList.add('highlight-mode');
-            // Force update even without mouse movement
-            const mouse = new THREE.Vector2(
-                (renderer.domElement.width/2) / window.innerWidth * 2 - 1,
-                -(renderer.domElement.height/2) / window.innerHeight * 2 + 1
-            );
-            const raycaster = new THREE.Raycaster();
-            raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects(worldObjects.children, true);
-            if (intersects.length > 0) {
-                applyHighlightEffect(intersects[0].object);
-            }
-        }
-        // Handle Q and E only when gravity is DISABLED
-        if (!gravityEnabled && (event.code === 'KeyQ' || event.code === 'KeyE')) {
-            // Prevent default to avoid any browser shortcuts
-            event.preventDefault();
-        }
-
-        // Key logger
-        console.log('Key down:', event.code, event.key);
-    });
-    */
 
     // End Alt key highlight
     document.addEventListener('keyup', function(event) {
