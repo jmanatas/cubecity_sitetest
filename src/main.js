@@ -241,17 +241,15 @@ function toggleGravity() {
         if (gravityEnabled) {
             gravityIndicator.textContent = 'GRAVITY ON';
             gravityIndicator.style.backgroundColor = 'rgba(0, 100, 200, 0.7)';
-            gravityIndicator.style.border = '2px solid #0088ff';
+            gravityIndicator.style.borderColor = '#0088ff';
+            gravityIndicator.style.color = 'white';
             gravityIndicator.classList.remove('off');
-            avatar.setAnimation('fly');
-            avatar.isJumping = false;
         } else {
             gravityIndicator.textContent = 'GRAVITY OFF';
             gravityIndicator.style.backgroundColor = 'rgba(128, 0, 0, 0.7)';
-            gravityIndicator.style.border = '2px solid #ff0000';
+            gravityIndicator.style.borderColor = '#ff0000';
+            gravityIndicator.style.color = 'white';
             gravityIndicator.classList.add('off');
-            const { animation } = avatar.controller.update(0.016, keyStates, avatar.cameraAzimuth);
-            avatar.setAnimation(animation);
         }
     }
     

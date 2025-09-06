@@ -101,14 +101,15 @@ a, button, input, select {
 }
 
 #object-list {
+    font-size: 10px;
     position: fixed;
-    top: 20px; /* Initial position */
-    right: 140px;
+    top: 10px; /* Initial position */
+    right: 110px;
     width: 300px;
     max-height: 300px;
     background-color: rgba(0, 0, 0, 0.7);
     border: 1px solid #444;
-    border-radius: 5px;
+    border-radius: 10px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -133,10 +134,11 @@ a, button, input, select {
 }
 
 #object-list h3 {
-    margin-top: 0;
-    margin-bottom: 10px;
+    padding-left: 15px;
+    margin-top: 5;
+    margin-bottom: 5px;
     color: #fff;
-    border-bottom: 1px solid #444;
+    border-bottom: 2px solid #444;
     padding-bottom: 5px;
     position: relative; /* Add this for teleport button positioning */
 }
@@ -160,42 +162,6 @@ a, button, input, select {
 .object-item.selected {
     background-color: rgba(100, 100, 255, 0.3);
     border-left: 3px solid #4af;
-}
-
-/* Teleport Button - Smaller version */
-#teleport-button {
-    position: absolute;
-    right: 8px; /* Adjusted for smaller size */
-    top: 8px; /* Adjusted for smaller size */
-    padding: 6px 10px; /* Reduced padding */
-    background: rgba(0,0,0,0.7);
-    color: white;
-    border: 2px solid #4af;
-    border-radius: 4px; /* Slightly smaller radius */
-    cursor: pointer;
-    font-size: 12px; /* Smaller font */
-    font-weight: bold;
-    font-family: Arial, sans-serif;
-    transition: all 0.3s ease;
-    z-index: 102;
-    margin: 0;
-    min-width: auto; /* Ensure it doesn't have a minimum width */
-}
-
-#teleport-button:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 10px rgba(74, 175, 255, 0.5); /* Blue glow to match border */
-    background: rgba(0,0,0,0.9);
-}
-
-#teleport-button.clicked {
-    background: rgba(74, 175, 255, 0.3);
-    border-color: #6bf;
-}
-
-#teleport-button.success {
-    background: rgba(76, 175, 80, 0.3);
-    border-color: #4CAF50;
 }
 
 canvas {
@@ -324,28 +290,10 @@ canvas {
   to { transform: rotate(360deg); }
 }
 
-#object-list-header {
-    padding: 8px; /* Reduced padding */
-    background-color: rgba(0, 0, 0, 0.9);
-    border-bottom: 1px solid #444;
-    flex-shrink: 0;
-    position: relative;
-    min-height: 35px; /* Reduced min-height */
-}
-
-#object-list-header h3 {
-    margin-top: 0;
-    margin-bottom: 0;
-    color: #fff;
-    display: inline-block;
-    line-height: 35px; /* Adjusted line height */
-    font-size: 14px; /* Slightly smaller font */
-}
-
 #object-list-content {
     overflow-y: auto; /* Enable scrolling only for content */
     flex-grow: 1; /* Take remaining space */
-    max-height: 250px; /* Limit height to ensure scrolling works */
+    max-height: 275px; /* Limit height to ensure scrolling works */
 }
 
 #object-list-items {
@@ -354,31 +302,33 @@ canvas {
 
 /* Keep your existing object-item styles */
 .object-item {
-    margin-bottom: 5px;
-    padding: 3px;
-    border-bottom: 1px dotted #333;
+    margin-bottom: 0px;
+    padding: 0px;
+    border-bottom: 0px dotted #333;
     cursor: pointer;
 }
 
 .object-name {
     color: #4af;
     font-weight: bold;
+    font-size: 10px;
 }
 
 .object-position {
     color: #afa;
-    font-size: 11px;
+    font-size: 8px;
 }
 
 .object-item.selected {
-    background-color: rgba(100, 100, 255, 0.3);
-    border-left: 3px solid #4af;
+    background-color: rgba(100, 100, 255, 0.5);
+    border-left: 8px solid #4af;
+    padding-left: 5px;
 }
 
 #teleport-button {
     position: absolute;
     right: 10px;
-    top: 5px; /* Position at top of header */
+    top: 5px; 
     padding: 10px 15px;
     background: rgba(0,0,0,0.7);
     color: white;
@@ -416,7 +366,8 @@ canvas {
     background: rgba(100, 100, 255, 0.7);
 }
 
-#toggle-object-list {
+/* Teleport Button */
+#toggle-object-list { 
     position: fixed;
     bottom: auto;
     top: 10px; 
@@ -700,7 +651,7 @@ canvas {
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 12px;
+    font-size: 10px;
     font-weight: bold;
     font-family: Arial, sans-serif;
     cursor: pointer;
@@ -739,10 +690,10 @@ canvas {
     }
 }
 
-/* Force smaller GO button with specific selector */
+/* GO! button with specific selector */
 #object-list-header #teleport-button {
     padding: 6px 10px !important;
-    font-size: 12px !important;
+    font-size: 10px !important;
     right: 8px !important;
     top: 8px !important;
     border-radius: 4px !important;
