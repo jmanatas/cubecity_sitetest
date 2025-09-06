@@ -715,3 +715,69 @@ canvas {
 #object-list-header #teleport-button.success {
     padding: 5px 9px !important;
 }
+
+/* Search box styles */
+#object-search-container {
+    margin: 8px 0;
+    width: 100%;
+}
+
+#object-search {
+    width: calc(100% - 20px);
+    padding: 8px 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid #444;
+    border-radius: 4px;
+    color: white;
+    font-family: Monospace;
+    font-size: 12px;
+}
+
+#object-search:focus {
+    outline: none;
+    border-color: #4af;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+#object-search::placeholder {
+    color: #aaa;
+}
+
+/* No results message */
+.no-results {
+    padding: 10px;
+    text-align: center;
+    color: #aaa;
+    font-style: italic;
+    font-size: 12px;
+}
+
+/* Adjust object list header for search box */
+#object-list-header {
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.9);
+    border-bottom: 1px solid #444;
+    flex-shrink: 0;
+    position: relative;
+}
+
+/* Adjust teleport button position */
+#teleport-button {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    padding: 6px 10px !important;
+    font-size: 10px !important;
+    border-radius: 4px !important;
+}
+
+/* Make object items flex for better layout */
+.object-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2px;
+    padding: 3px;
+    border-bottom: 1px dotted #333;
+    cursor: pointer;
+}

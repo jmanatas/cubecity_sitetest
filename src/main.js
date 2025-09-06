@@ -1,12 +1,15 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js';
-import Stats from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/libs/stats.module.js';
-import { Octree } from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/math/Octree.js';
-import { RGBELoader } from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/loaders/RGBELoader.js';
-import { EffectComposer } from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/postprocessing/RenderPass.js';
-import { OutlinePass } from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/postprocessing/OutlinePass.js';
-import { ShaderPass } from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/postprocessing/ShaderPass.js';
-import { FXAAShader } from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/shaders/FXAAShader.js';
+import * as THREE from 'three';
+import Stats from 'three/examples/jsm/libs/stats.module.js';
+import { Octree } from 'three/examples/jsm/math/Octree.js';
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js';
+import { Capsule } from 'three/examples/jsm/math/Capsule.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { AvatarController } from './avatarController.js';
 import { Avatar } from './avatar.js';
 import { PhysicsWorld, createPhysicsSphere, GRAVITY, SPHERE_RADIUS, STEPS_PER_FRAME } from './physics.js';
 import { initMobileControls, checkTouchDevice } from './mobileControls.js';
@@ -374,6 +377,18 @@ function createObjectListWindow() {
     title.textContent = 'Scene Objects';
     header.appendChild(title);
 
+    // Create search box
+    const searchContainer = document.createElement('div');
+    searchContainer.id = 'object-search-container';
+    
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.id = 'object-search';
+    searchInput.placeholder = 'Search websites...';
+    searchContainer.appendChild(searchInput);
+    
+    header.appendChild(searchContainer);
+
     // Create teleport button
     const teleportBtn = document.createElement('button');
     teleportBtn.id = 'teleport-button';
@@ -394,6 +409,54 @@ function createObjectListWindow() {
     container.appendChild(content);
     
     document.body.appendChild(container);
+    
+    // Add search functionality
+    setupSearchFunctionality();
+}
+function setupSearchFunctionality() {
+    const searchInput = document.getElementById('object-search');
+    if (!searchInput) return;
+    
+    searchInput.addEventListener('input', function() {
+        filterObjectList(this.value.toLowerCase());
+    });
+    
+    searchInput.addEventListener('keydown', function(e) {
+        // Prevent Enter key from submitting forms or doing other actions
+        if (e.key === 'Enter') {
+            e.preventDefault();
+        }
+    });
+}
+
+function filterObjectList(searchTerm) {
+    const items = document.querySelectorAll('.object-item');
+    let hasMatches = false;
+    
+    items.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        if (searchTerm === '' || text.includes(searchTerm)) {
+            item.style.display = 'flex';
+            hasMatches = true;
+        } else {
+            item.style.display = 'none';
+        }
+    });
+    
+    // Show a "no results" message if no matches found
+    const noResults = document.getElementById('no-results-message');
+    if (!hasMatches && searchTerm !== '') {
+        if (!noResults) {
+            const listElement = document.getElementById('object-list-items');
+            const noResultsMsg = document.createElement('div');
+            noResultsMsg.id = 'no-results-message';
+            noResultsMsg.className = 'no-results';
+            noResultsMsg.textContent = 'No websites found matching your search';
+            listElement.appendChild(noResultsMsg);
+        }
+    } else if (noResults) {
+        noResults.remove();
+    }
 }
 
 // Updates the object list UI with current scene objects from objectsData.
@@ -414,18 +477,53 @@ function updateObjectList() {
     }
     
     listElement.innerHTML = '';
+    
+    // Get current search term
+    const searchInput = document.getElementById('object-search');
+    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+    
     // Create object items
     objectsData.objects.forEach((objData, index) => {
-        const objName = objData.name || `Object_${index}`;
+        // Try to get the texture URL for this object
+        let displayText = `Object_${index}`;
+        
+        // If we have a mesh for this object, try to get its texture URL
+        if (worldObjects && worldObjects.children[index]) {
+            const mesh = worldObjects.children[index];
+            if (mesh.isMesh) {
+                let material = mesh.material;
+                if (Array.isArray(material)) material = material[0];
+                
+                if (material && material.map && textureUrls.has(material.map)) {
+                    const url = textureUrls.get(material.map);
+                    // Extract just the domain for display
+                    try {
+                        const domain = new URL(url).hostname;
+                        displayText = domain;
+                    } catch (e) {
+                        displayText = url; // Fallback to full URL if parsing fails
+                    }
+                }
+            }
+        }
+        
+        // Check if this item matches the search term
+        const isVisible = searchTerm === '' || displayText.toLowerCase().includes(searchTerm);
+        
         const item = document.createElement('div');
         item.className = `object-item ${selectedObjectIndex === index ? 'selected' : ''}`;
         item.dataset.index = index;
+        item.style.display = isVisible ? 'flex' : 'none';
+        
         // Add click event listener
         item.onclick = handleObjectClick;
-        // Highlight the selected object
+        
+        // Create name span with URL
         const nameSpan = document.createElement('span');
         nameSpan.className = 'object-name';
-        nameSpan.textContent = objName;
+        nameSpan.textContent = displayText;
+        nameSpan.title = displayText; // Add tooltip with full text
+        
         // Create position span
         const posSpan = document.createElement('span');
         posSpan.className = 'object-position';
@@ -435,11 +533,24 @@ function updateObjectList() {
                                  objData.position[1]?.toFixed(1) || 0}, ${
                                  objData.position[2]?.toFixed(1) || 0})`;
         }
+        
         // Append elements to item
         item.appendChild(nameSpan);
         item.appendChild(posSpan);
         listElement.appendChild(item);
     });
+    
+    // Show "no results" message if needed
+    if (searchTerm !== '') {
+        const visibleItems = document.querySelectorAll('.object-item[style="display: flex"]');
+        if (visibleItems.length === 0) {
+            const noResultsMsg = document.createElement('div');
+            noResultsMsg.id = 'no-results-message';
+            noResultsMsg.className = 'no-results';
+            noResultsMsg.textContent = 'No websites found matching your search';
+            listElement.appendChild(noResultsMsg);
+        }
+    }
 }
 
 // Handles click events on object list items, updating the selectedObjectIndex.
@@ -792,69 +903,33 @@ function setupEventListeners() {
             return; // Add return to prevent further processing
         }
         
-        // Add F key for gravity toggle
+        // Set key state for ALL keys first
         keyStates[event.code] = true;
-            if (event.code === 'KeyF') {
-                gravityEnabled = !gravityEnabled;
-                avatar.gravityEnabled = gravityEnabled; 
-                
-                // Update visual indicator
-                if (gravityIndicator) {
-                    gravityIndicator.textContent = gravityEnabled ? 'GRAVITY: ON' : 'GRAVITY: OFF';
-                    
-                    if (gravityEnabled) {
-                        avatar.setAnimation('fly');
-                        avatar.isJumping = false;
-                    } else {
-                        const { animation } = avatar.controller.update(0.016, keyStates, avatar.cameraAzimuth);
-                        avatar.setAnimation(animation);
-                        gravityIndicator.style.color = '#ff6b6b';
-                        gravityIndicator.style.backgroundColor = 'rgba(0,0,0,0.9)';
-                        gravityIndicator.style.border = '2px solid #ff6b6b';
-                    }
-                }
-                
-                // CRITICAL FIX: Reset jumping state when gravity is disabled
-                if (!gravityEnabled && avatar.isJumping) {
-                    avatar.isJumping = false;
-                    
-                    // Force fly animation when gravity is turned OFF during jump
-                    avatar.setAnimation('fly');
-                } else if (!gravityEnabled) {
-                    // Gravity turned OFF - play fly animation
-                    avatar.setAnimation('fly');
-                } else {
-                    // Gravity turned ON - return to appropriate animation based on movement
-                    const { animation } = avatar.controller.update(0.016, keyStates, avatar.cameraAzimuth);
-                    avatar.setAnimation(animation);
-                }
-                
-                if (!gravityEnabled) {
-                    // When disabling gravity, stop vertical movement
-                    avatar.velocity.y = 0;
-                } else {
-                    // When ENABLING gravity, force the avatar to not be on floor
-                    avatar.onFloor = false;
-                    avatar.velocity.y = -1.0; // Small downward push
-                }
-            }
         
-            // Check if Alt is pressed
-            if (event.code === 'AltLeft') {
-                highlightEffectEnabled = true;
-                document.body.classList.add('highlight-mode');
-                // Force update even without mouse movement
-                const mouse = new THREE.Vector2(
-                    (renderer.domElement.width/2) / window.innerWidth * 2 - 1,
-                    -(renderer.domElement.height/2) / window.innerHeight * 2 + 1
-                );
-                const raycaster = new THREE.Raycaster();
-                raycaster.setFromCamera(mouse, camera);
-                const intersects = raycaster.intersectObjects(worldObjects.children, true);
-                if (intersects.length > 0) {
-                    applyHighlightEffect(intersects[0].object);
-                }
+        // Handle specific key actions
+        if (event.code === 'KeyF') {
+            toggleGravity();
+            // Prevent default to avoid any browser shortcuts
+            event.preventDefault();
+        }
+        
+        // Check if Alt is pressed
+        if (event.code === 'AltLeft') {
+            highlightEffectEnabled = true;
+            document.body.classList.add('highlight-mode');
+            // Force update even without mouse movement
+            const mouse = new THREE.Vector2(
+                (renderer.domElement.width/2) / window.innerWidth * 2 - 1,
+                -(renderer.domElement.height/2) / window.innerHeight * 2 + 1
+            );
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(worldObjects.children, true);
+            if (intersects.length > 0) {
+                applyHighlightEffect(intersects[0].object);
             }
+        }
+        
         // Handle Q and E only when gravity is DISABLED
         if (!gravityEnabled && (event.code === 'KeyQ' || event.code === 'KeyE')) {
             // Prevent default to avoid any browser shortcuts
@@ -863,10 +938,6 @@ function setupEventListeners() {
 
         // Key logger
         console.log('Key down:', event.code, event.key)
-    });
-
-    document.addEventListener('keyup', (event) => {
-        keyStates[event.code] = false;
     });
 
     // Mouse down event to request pointer lock
