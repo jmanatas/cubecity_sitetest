@@ -106,6 +106,20 @@ export function initMobileControls() {
         handleJoystickStart(e);
     });
     
+    // Add global mouse up listener to handle joystick release outside the element
+    document.addEventListener('mouseup', function(e) {
+        if (joystickActive) {
+            handleJoystickEnd(e);
+        }
+    });
+    
+    // Add global mouse move listener for desktop
+    document.addEventListener('mousemove', function(e) {
+        if (joystickActive) {
+            handleJoystickMove(e);
+        }
+    });
+    
     // Prevent default on action buttons to avoid scrolling
     if (jumpButton) {
         jumpButton.addEventListener('touchstart', (e) => {
@@ -262,6 +276,19 @@ export function initMobileControls() {
             }
             flyDownButton.style.backgroundColor = 'rgba(0, 100, 200, 0.7)';
         });
+        // Add a continuous update loop for both joysticks at the end of the file
+        function joystickUpdateLoop() {
+            if (joystickActive) {
+                updateKeyStatesFromJoystick();
+            }
+            if (cameraJoystickActive) {
+                updateCameraFromJoystick();
+            }
+            requestAnimationFrame(joystickUpdateLoop);
+        }
+
+        // Start the update loop
+        joystickUpdateLoop();
     }
 }
 
@@ -459,11 +486,6 @@ function handleCameraJoystickMove(e) {
     updateCameraFromJoystick();
 }
 
-function handleCameraJoystickEnd(e) {
-    e.preventDefault();
-    resetCameraJoystick();
-}
-
 function updateCameraJoystickPosition(x, y) {
     const cameraStick = document.getElementById('camera-stick');
     if (!cameraStick) return;
@@ -500,6 +522,11 @@ function resetCameraJoystick() {
     
     cameraJoystickActive = false;
     cameraJoystickVector = { x: 0, y: 0 };
+}
+
+function handleCameraJoystickEnd(e) {
+    e.preventDefault();
+    resetCameraJoystick();
 }
 
 // Add this function to continuously update the camera:
@@ -550,23 +577,6 @@ function handleJoystickStart(e) {
     }
 }
 
-function handleJoystickMove(e) {
-    if (!joystickActive) return;
-    e.preventDefault();
-    
-    if (e.type === 'touchmove') {
-        const touch = e.touches[0];
-        updateJoystickPosition(touch.clientX, touch.clientY);
-    } else if (e.type === 'mousemove' && joystickActive) {
-        updateJoystickPosition(e.clientX, e.clientY);
-    }
-}
-
-function handleJoystickEnd(e) {
-    e.preventDefault();
-    resetJoystick();
-}
-
 function updateJoystickPosition(x, y) {
     const stick = document.getElementById('movement-stick');
     if (!stick) return;
@@ -612,6 +622,55 @@ function resetJoystick() {
         window.keyStates['KeyD'] = false;
         // Note: We DON'T reset ShiftLeft here to maintain run toggle state
     }
+}
+
+// Update the handleJoystickEnd function to reset the stick position
+function handleJoystickEnd(e) {
+    e.preventDefault();
+    resetJoystick();
+}
+
+// Update the handleJoystickMove function to match camera joystick behavior
+function handleJoystickMove(e) {
+    if (!joystickActive) return;
+    e.preventDefault();
+    
+    let clientX, clientY;
+    
+    if (e.type === 'touchmove') {
+        const touch = e.touches[0];
+        clientX = touch.clientX;
+        clientY = touch.clientY;
+    } else if (e.type === 'mousemove' && joystickActive) {
+        clientX = e.clientX;
+        clientY = e.clientY;
+    }
+    
+    // Calculate joystick position
+    const dx = clientX - joystickCenterX;
+    const dy = clientY - joystickCenterY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    // Limit to joystick radius
+    const limitedDistance = Math.min(distance, joystickRadius);
+    const angle = Math.atan2(dy, dx);
+    
+    // Calculate stick position
+    const stickX = Math.cos(angle) * limitedDistance;
+    const stickY = Math.sin(angle) * limitedDistance;
+    
+    // Update stick visual position
+    const stick = document.getElementById('movement-stick');
+    if (stick) {
+        stick.style.transform = `translate(${stickX}px, ${stickY}px)`;
+    }
+    
+    // Normalize joystick vector for movement
+    joystickVector.x = limitedDistance > 0 ? dx / joystickRadius : 0;
+    joystickVector.y = limitedDistance > 0 ? dy / joystickRadius : 0;
+    
+    // Update key states based on joystick direction
+    updateKeyStatesFromJoystick();
 }
 
 function updateKeyStatesFromJoystick() {
