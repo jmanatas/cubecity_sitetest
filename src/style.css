@@ -100,10 +100,10 @@ a, button, input, select {
 	padding: 10px;
 }
 
+/* When object list is visible, adjust header position */
 #object-list {
-    font-size: 10px;
     position: fixed;
-    top: 10px; /* Initial position */
+    top: 10px;
     right: 110px;
     width: 300px;
     max-height: 300px;
@@ -113,24 +113,15 @@ a, button, input, select {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    display: none;
-    z-index: 100 !important;
+    z-index: 100;
 }
 
+/* Make sure the toggle button stays in the right position */
 #toggle-object-list {
     position: fixed;
-    top: 20px;
-    right: 20px;
-    padding: 5px 10px;
-    background: rgba(0,0,0,0.5);
-    color: white;
-    border: 1px solid #444;
-    border-radius: 5px;
-    cursor: auto !important;
-    z-index: 101; /* Increased from 11 to 100 */
-    pointer-events: auto !important; /* Force override */
-	bottom: 20px;
-    right: 20px;
+    top: 10px;
+    right: 10px;
+    z-index: 101;
 }
 
 #object-list h3 {
@@ -156,7 +147,7 @@ a, button, input, select {
 
 .object-position {
     color: #afa;
-    font-size: 11px;
+    font-size: 15px;
 }
 
 .object-item.selected {
@@ -297,7 +288,7 @@ canvas {
 }
 
 #object-list-items {
-    padding: 0 10px 10px 10px;
+    padding: 0 10px 10px 5px;
 }
 
 /* Keep your existing object-item styles */
@@ -311,12 +302,12 @@ canvas {
 .object-name {
     color: #4af;
     font-weight: bold;
-    font-size: 10px;
+    font-size: 12px;
 }
 
 .object-position {
     color: #afa;
-    font-size: 8px;
+    font-size: 10px;
 }
 
 .object-item.selected {
@@ -325,26 +316,32 @@ canvas {
     padding-left: 5px;
 }
 
+/* Teleport button styles */
 #teleport-button {
     position: absolute;
     right: 10px;
-    top: 5px; 
-    padding: 10px 15px;
-    background: rgba(0,0,0,0.7);
+    top: 10px;
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.7);
     color: white;
     border: 2px solid #4af;
-    border-radius: 5px;
     cursor: pointer;
-    font-size: 14px;
-    font-weight: bold;
-    font-family: Arial, sans-serif;
-    transition: all 0.3s ease;
     z-index: 102;
-    margin: 0;
+    display: none; /* Hidden by default */
+    font-family: Arial, sans-serif;
+    font-weight: bold;
+    min-width: 60px; /* Match controls button width */
+    height: 30px; /* Match controls button height */
+    box-sizing: border-box;
+    transition: all 0.3s ease;
 }
 
 #teleport-button:hover {
-    background: rgba(0,0,0,0.7);
+    transform: scale(1.05);
+    box-shadow: 0 0 8px rgba(74, 175, 255, 0.5);
+    background: rgba(0, 0, 0, 0.9);
 }
 
 /* Scrollbar styling for the object list */
@@ -370,9 +367,9 @@ canvas {
 #toggle-object-list { 
     position: fixed;
     bottom: auto;
-    top: 10px; 
+    top: 50px; 
     right: 10px;
-    padding: 10px 15px;
+    padding: 5px 10px;
     background: rgba(0,0,0,0.7);
     color: white;
     border: 2px solid #4af;
@@ -408,7 +405,7 @@ canvas {
     bottom: 20px;
     left: 20px;
     z-index: 100;
-    display: none; /* Hidden by default, shown on touch devices */
+    display: none; /* Hidden by default */
     pointer-events: auto;
 }
 
@@ -439,11 +436,11 @@ canvas {
     bottom: 20px;
     right: 20px;
     z-index: 100;
-    display: none;
+    display: none; /* Hidden by default */
     pointer-events: auto;
     display: flex;
     align-items: flex-end;
-    gap: 20px;
+    gap: 10px;
 }
 
 #vertical-buttons {
@@ -655,12 +652,12 @@ canvas {
     font-weight: bold;
     font-family: Arial, sans-serif;
     cursor: pointer;
-    z-index: 100;
     transition: all 0.3s ease;
     text-align: center;
     line-height: 1.2;
     padding: 5px;
     box-sizing: border-box;
+    margin-bottom: 10px; /* Add some spacing */
 }
 
 #gravity-indicator.off {
@@ -692,10 +689,10 @@ canvas {
 
 /* GO! button with specific selector */
 #object-list-header #teleport-button {
-    padding: 6px 10px !important;
+    padding: 4px 10px !important;
     font-size: 10px !important;
     right: 8px !important;
-    top: 8px !important;
+    top: 44px !important;
     border-radius: 4px !important;
     min-width: auto !important;
     height: auto !important;
@@ -705,7 +702,7 @@ canvas {
 #object-list-header #teleport-button:hover {
     padding: 6px 10px !important;
     transform: scale(1.05) !important;
-    box-shadow: 0 0 8px rgba(74, 175, 255, 0.5) !important;
+    box-shadow: 0 0 2px rgba(74, 175, 255, 0.5) !important;
 }
 
 #object-list-header #teleport-button.clicked {
@@ -718,13 +715,13 @@ canvas {
 
 /* Search box styles */
 #object-search-container {
-    margin: 8px 0;
-    width: 100%;
+    margin-bottom: 4px;
+    width: calc(100% - 80px); /* Adjust width to account for buttons */
 }
 
 #object-search {
-    width: calc(100% - 20px);
-    padding: 8px 10px;
+    width: calc(100% - 10px);
+    padding: 4px 5px;
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid #444;
     border-radius: 4px;
@@ -754,21 +751,18 @@ canvas {
 
 /* Adjust object list header for search box */
 #object-list-header {
-    padding: 10px;
+    position: relative;
+    padding: 5px;
     background-color: rgba(0, 0, 0, 0.9);
     border-bottom: 1px solid #444;
     flex-shrink: 0;
-    position: relative;
+    min-height: 40px; /* Increased to accommodate both buttons */
 }
 
-/* Adjust teleport button position */
-#teleport-button {
-    position: absolute;
-    right: 10px;
-    top: 10px;
-    padding: 6px 10px !important;
-    font-size: 10px !important;
-    border-radius: 4px !important;
+#object-list-header h3 {
+    margin: 0 0 8px 0;
+    color: #fff;
+    padding-right: 80px; /* Make space for buttons */
 }
 
 /* Make object items flex for better layout */
@@ -780,4 +774,37 @@ canvas {
     padding: 3px;
     border-bottom: 1px dotted #333;
     cursor: pointer;
+}
+
+/* Controls button styles */
+#toggle-controls-button {
+    position: absolute;
+    right: 10px;
+    top: 10px; /* Position below the teleport button */
+    padding: 6px 12px;
+    font-size: 10px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    border: 2px solid #ffa500;
+    cursor: pointer;
+    z-index: 102;
+    font-family: Arial, sans-serif;
+    font-weight: bold;
+    min-width: 60px; /* Consistent width */
+    height: 30px; /* Consistent height */
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+}
+
+#toggle-controls-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 8px rgba(255, 165, 0, 0.5);
+    background: rgba(0, 0, 0, 0.9);
+}
+
+#toggle-controls-button.active {
+    background: rgba(255, 165, 0, 0.7);
+    border-color: #ff8c00;
+    color: #000;
 }

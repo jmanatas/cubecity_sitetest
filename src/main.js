@@ -60,7 +60,7 @@ const HIGHLIGHT_HYSTERESIS = 200; // ms delay before switching objects
 // Load object/geometry data from JSON file
 async function loadObjectsData() {
     try {
-        const response = await fetch('./threejs_export.json');
+        const response = await fetch('threejs_export.json');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -97,7 +97,7 @@ const vector1 = new THREE.Vector3();
 // Returns a Promise resolving to the parsed JSON data containing object geometries, positions, and other properties.
 async function loadJSON() {
     try {
-        const response = await fetch('./threejs_export.json');
+        const response = await fetch('/threejs_export.json');
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         
         const data = await response.json();
@@ -366,35 +366,28 @@ function createObjectListWindow() {
     // Create the object list container
     const container = document.createElement('div');
     container.id = 'object-list';
-    container.style.display = 'none'; // Explicitly set to hidden
+    container.style.display = 'none'; // Hidden by default
 
-    // Create header section
-    const header = document.createElement('div');
-    header.id = 'object-list-header';
-
-    // Create title
-    const title = document.createElement('h3');
-    title.textContent = 'Scene Objects';
-    header.appendChild(title);
-
-    // Create search box
-    const searchContainer = document.createElement('div');
-    searchContainer.id = 'object-search-container';
+    // Get the existing header from HTML
+    const header = document.getElementById('object-list-header');
     
-    const searchInput = document.createElement('input');
-    searchInput.type = 'text';
-    searchInput.id = 'object-search';
-    searchInput.placeholder = 'Search websites...';
-    searchContainer.appendChild(searchInput);
-    
-    header.appendChild(searchContainer);
-
-    // Create teleport button
+    // Create teleport button and add it to the header
     const teleportBtn = document.createElement('button');
     teleportBtn.id = 'teleport-button';
     teleportBtn.textContent = 'GO!';
+    teleportBtn.style.display = 'none'; // Hidden initially
+    
+    // Position the button in the header
+    teleportBtn.style.position = 'absolute';
+    teleportBtn.style.right = '10px';
+    teleportBtn.style.top = '10px';
+    teleportBtn.style.padding = '6px 10px';
+    teleportBtn.style.fontSize = '10px';
+    teleportBtn.style.borderRadius = '4px';
+    
     header.appendChild(teleportBtn);
-
+    
+    // Move the header into the container
     container.appendChild(header);
 
     // Create scrollable content section
@@ -412,6 +405,9 @@ function createObjectListWindow() {
     
     // Add search functionality
     setupSearchFunctionality();
+    
+    // Setup teleport button functionality
+    setupTeleportButton();
 }
 function setupSearchFunctionality() {
     const searchInput = document.getElementById('object-search');
@@ -427,6 +423,31 @@ function setupSearchFunctionality() {
             e.preventDefault();
         }
     });
+}
+
+// Add this function to main.js
+function toggleMobileControls() {
+    const mobileControls = document.getElementById('mobile-controls');
+    const actionButtons = document.getElementById('action-buttons-container');
+    const toggleBtn = document.getElementById('toggle-controls-button');
+    
+    if (!mobileControls || !actionButtons || !toggleBtn) return;
+    
+    const isHidden = mobileControls.style.display === 'none' || 
+                    mobileControls.style.display === '';
+    
+    // Toggle visibility
+    mobileControls.style.display = isHidden ? 'block' : 'none';
+    actionButtons.style.display = isHidden ? 'flex' : 'none';
+    
+    // Update button state and text
+    if (isHidden) {
+        toggleBtn.classList.add('active');
+        toggleBtn.textContent = 'Controls';
+    } else {
+        toggleBtn.classList.remove('active');
+        toggleBtn.textContent = 'Controls';
+    }
 }
 
 function filterObjectList(searchTerm) {
@@ -885,6 +906,12 @@ function setupObjectClickHandler() {
 function setupEventListeners() {
     const container = document.getElementById('container');
 
+    // Add Controls button toggle functionality
+    const toggleControlsBtn = document.getElementById('toggle-controls-button');
+    if (toggleControlsBtn) {
+        toggleControlsBtn.addEventListener('click', toggleMobileControls);
+    }
+
     // Keyboard controls
     document.addEventListener('keydown', function(event) {
         if (event.code === 'Escape') {
@@ -1104,13 +1131,15 @@ function setupEventListeners() {
 function toggleTeleportWindow() {
     const list = document.getElementById('object-list');
     const toggleBtn = document.getElementById('toggle-object-list');
+    const teleportBtn = document.getElementById('teleport-button');
     
-    // Check if list exists
-    if (!list || !toggleBtn) return;
+    // Check if elements exist
+    if (!list || !toggleBtn || !teleportBtn) return;
     
     // Toggle visibility
     const isHidden = list.style.display === 'none';
     list.style.display = isHidden ? 'block' : 'none';
+    teleportBtn.style.display = isHidden ? 'block' : 'none';
     
     // Update toggle button state
     if (isHidden) {
@@ -1301,12 +1330,9 @@ async function init() {
         // Create and configure stats FIRST
         stats = new Stats();
         stats.domElement.style.position = 'absolute';
-        stats.domElement.style.top = '0px';
+        stats.domElement.style.top = '250';
         stats.domElement.style.left = '0px';
         document.getElementById('container').appendChild(stats.domElement);
-
-        // Create gravity indicator (always visible)
-        gravityIndicator = createGravityIndicator();
 
         // Create basic Three.js components
         scene = new THREE.Scene();
@@ -1355,6 +1381,65 @@ async function init() {
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 0.5;
         document.getElementById('container').appendChild(renderer.domElement);
+
+        // Initialize controls button state - hide by default on all devices
+        const toggleControlsBtn = document.getElementById('toggle-controls-button');
+        if (toggleControlsBtn) {
+            // Hide mobile controls by default
+            const mobileControls = document.getElementById('mobile-controls');
+            const actionButtons = document.getElementById('action-buttons-container');
+            
+            if (mobileControls) mobileControls.style.display = 'none';
+            if (actionButtons) actionButtons.style.display = 'none';
+            
+            // Set button to "Controls" state
+            toggleControlsBtn.textContent = 'Controls';
+            toggleControlsBtn.classList.remove('active');
+        }
+
+        // Initialize gravity button
+        const gravityIndicator = document.getElementById('gravity-indicator');
+        if (gravityIndicator) {
+            gravityIndicator.addEventListener('click', toggleGravity);
+            
+            // Add hover effects
+            gravityIndicator.addEventListener('mouseenter', function() {
+                if (gravityEnabled) {
+                    this.style.transform = 'scale(1.05)';
+                    this.style.boxShadow = '0 0 10px rgba(0, 136, 255, 0.5)';
+                    this.style.backgroundColor = 'rgba(0, 100, 200, 0.9)';
+                } else {
+                    this.style.transform = 'scale(1.05)';
+                    this.style.boxShadow = '0 0 10px rgba(255, 0, 0, 0.5)';
+                    this.style.backgroundColor = 'rgba(128, 0, 0, 0.9)';
+                }
+            });
+
+            gravityIndicator.addEventListener('mouseleave', function() {
+                this.style.transform = '';
+                this.style.boxShadow = '';
+                if (gravityEnabled) {
+                    this.style.backgroundColor = 'rgba(0, 100, 200, 0.7)';
+                } else {
+                    this.style.backgroundColor = 'rgba(128, 0, 0, 0.7)';
+                }
+            });
+            
+            // Set initial state
+            if (gravityEnabled) {
+                gravityIndicator.textContent = 'GRAVITY ON';
+                gravityIndicator.style.backgroundColor = 'rgba(0, 100, 200, 0.7)';
+                gravityIndicator.style.borderColor = '#0088ff';
+                gravityIndicator.style.color = 'white';
+                gravityIndicator.classList.remove('off');
+            } else {
+                gravityIndicator.textContent = 'GRAVITY OFF';
+                gravityIndicator.style.backgroundColor = 'rgba(128, 0, 0, 0.7)';
+                gravityIndicator.style.borderColor = '#ff0000';
+                gravityIndicator.style.color = 'white';
+                gravityIndicator.classList.add('off');
+            }
+        }
 
         // Loader for HDR environment map
         const loader = new RGBELoader();

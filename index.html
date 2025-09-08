@@ -44,6 +44,21 @@
             </div>
         </div>
     </div>
+
+    <!-- Add Controls button -->
+    <button id="toggle-controls-button">Controls</button>
+
+    <!-- Create header section -->
+    <div id="object-list-header">
+        <!-- Create title -->
+        <h3>Scene Objects</h3>
+        
+        <!-- Create search box -->
+        <div id="object-search-container">
+            <input type="text" id="object-search" placeholder="Search websites...">
+        </div>
+        
+    </div>
     
     <script type="module" src="./src/main.js"></script>
 
@@ -62,6 +77,9 @@
         
         <!-- Right side: Action buttons and camera joystick -->
         <div id="right-side-controls">
+            <!-- Gravity button (moved here from JavaScript) -->
+            <div id="gravity-indicator" class="action-button">GRAVITY ON</div>
+            
             <!-- Action buttons side by side -->
             <div id="horizontal-buttons">
                 <div id="jump-button" class="action-button">↑</div>
