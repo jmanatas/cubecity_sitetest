@@ -614,7 +614,7 @@ function createRandomMaterial(position, uvs, isVertical, objData) {
     // Use specific textures for specific objects
     if (isGroundAtOrigin) {
         // Load grass texture for object at (0,0,0)
-        const grassTexture = textureLoader.load('/src/images/grass.png');
+        const grassTexture = textureLoader.load('./src/images/grass.png');
         grassTexture.wrapS = THREE.RepeatWrapping;
         grassTexture.wrapT = THREE.RepeatWrapping;
         grassTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
@@ -627,7 +627,7 @@ function createRandomMaterial(position, uvs, isVertical, objData) {
         });
     } else if (isZGround) {
         // Load water texture for object named "zGround"
-        const waterTexture = textureLoader.load('/src/images/water.png');
+        const waterTexture = textureLoader.load('./src/images/water.png');
         waterTexture.wrapS = THREE.RepeatWrapping;
         waterTexture.wrapT = THREE.RepeatWrapping;
         waterTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
