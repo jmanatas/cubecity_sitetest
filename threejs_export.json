@@ -1002319,6 +1002319,114 @@
       "material": "default",
       "castShadow": true,
       "receiveShadow": true
+    },
+    {
+      "name": "ZERO",
+      "var_name": "ZERO",
+      "vertices": [
+        -5.0,
+        -5.0,
+        -5.0,
+        -5.0,
+        -5.0,
+        5.0,
+        5.0,
+        -5.0,
+        -5.0,
+        5.0,
+        -5.0,
+        5.0
+      ],
+      "indices": [
+        2,
+        0,
+        1,
+        2,
+        1,
+        3
+      ],
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "material": "default",
+      "castShadow": true,
+      "receiveShadow": true,
+      "uvs": [
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "zGround",
+      "var_name": "zGround",
+      "vertices": [
+        -250.0,
+        0.0,
+        -250.0,
+        -250.0,
+        0.0,
+        250.0,
+        250.0,
+        0.0,
+        -250.0,
+        250.0,
+        0.0,
+        250.0
+      ],
+      "indices": [
+        2,
+        0,
+        1,
+        2,
+        1,
+        3
+      ],
+      "position": [
+        0.0,
+        -284.736328125,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "material": "ground",
+      "castShadow": true,
+      "receiveShadow": true,
+      "uvs": [
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ]
     }
   ],
   "materials": {
