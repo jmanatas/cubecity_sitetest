@@ -106,7 +106,7 @@ export class PhysicsWorld {
         }
     }
 
-// Player-sphere collision detection
+// Player-sphere collision detection - SIMPLE FIX
 playerSphereCollision(player, sphere) {
     const center = vector1.addVectors(player.collider.start, player.collider.end).multiplyScalar(0.5);
     const sphere_center = sphere.collider.center;
@@ -119,20 +119,44 @@ playerSphereCollision(player, sphere) {
 
         if (d2 < r2) {
             const normal = vector1.subVectors(point, sphere_center).normalize();
-            const v1 = vector2.copy(normal).multiplyScalar(normal.dot(player.velocity));
-            const v2 = vector3.copy(normal).multiplyScalar(normal.dot(sphere.velocity));
-
-            player.velocity.add(v2).sub(v1);
-            sphere.velocity.add(v1).sub(v2);
-
-            const d = (r - Math.sqrt(d2)) / 2;
             
-            // Move BOTH the sphere AND the player capsule
+            // CRITICAL FIX: Prevent any upward velocity transfer to player
+            if (normal.y > 0.1) { // If collision normal has upward component
+                // Only affect horizontal components of velocity
+                const horizontalNormal = new THREE.Vector3(normal.x, 0, normal.z).normalize();
+                
+                // Calculate velocity components
+                const playerVelHoriz = new THREE.Vector3(player.velocity.x, 0, player.velocity.z);
+                const sphereVelHoriz = new THREE.Vector3(sphere.velocity.x, 0, sphere.velocity.z);
+                
+                const v1 = horizontalNormal.clone().multiplyScalar(horizontalNormal.dot(playerVelHoriz));
+                const v2 = horizontalNormal.clone().multiplyScalar(horizontalNormal.dot(sphereVelHoriz));
+                
+                // Only transfer horizontal momentum
+                playerVelHoriz.add(v2).sub(v1);
+                sphereVelHoriz.add(v1).sub(v2);
+                
+                // Apply horizontal velocities
+                player.velocity.x = playerVelHoriz.x;
+                player.velocity.z = playerVelHoriz.z;
+                sphere.velocity.x = sphereVelHoriz.x;
+                sphere.velocity.z = sphereVelHoriz.z;
+                
+            } else {
+                // Regular collision response for horizontal/side collisions
+                const v1 = vector2.copy(normal).multiplyScalar(normal.dot(player.velocity));
+                const v2 = vector3.copy(normal).multiplyScalar(normal.dot(sphere.velocity));
+                
+                player.velocity.add(v2).sub(v1);
+                sphere.velocity.add(v1).sub(v2);
+            }
+            
+            // Move sphere out of collision (but not player)
+            const d = (r - Math.sqrt(d2)) * 1.05;
             sphere_center.addScaledVector(normal, -d);
             
-            // Also move the player capsule away from the sphere
-            player.collider.start.addScaledVector(normal, d * 0.5);
-            player.collider.end.addScaledVector(normal, d * 0.5);
+            // CRITICAL: Never let sphere collisions give player upward velocity
+            player.velocity.y = Math.min(player.velocity.y, 0);
         }
     }
 }

@@ -11,13 +11,13 @@ export class Avatar {
         this.playerRadius = playerRadius || 0.4;
         this.avatarFeetOffset = 0;
 
-        this.isJumping = false; // initialize isJumping property
+        this.isJumping = false;
         this.gravityEnabled = true;
         
-        // Player physics
+        // Player physics - spawn at (0,0,0)
         this.collider = new Capsule(
-            new THREE.Vector3(0, respawnHeight + this.playerRadius, 0),
-            new THREE.Vector3(0, respawnHeight + this.playerHeight * 0.5, 0),
+            new THREE.Vector3(0, this.playerRadius, 0), // Start at (0, radius, 0)
+            new THREE.Vector3(0, this.playerHeight * 0.5, 0), // End at (0, height/2, 0)
             this.playerRadius
         );
         
@@ -87,14 +87,24 @@ export class Avatar {
     }
 
         resetState() {
+            // Reset to spawn position (0,0,0)
+            const capsuleHeight = this.collider.end.y - this.collider.start.y;
+            this.collider.start.set(0, this.playerRadius, 0);
+            this.collider.end.set(0, this.playerRadius + capsuleHeight, 0);
+            
             this.velocity.set(0, 0, 0);
             this.isJumping = false;
-            // DON'T set onFloor to true here - keep it false so avatar falls
+            // DON'T set onFloor to true - let physics determine this
             // this.onFloor = true; // REMOVE THIS LINE
             
-            // Only set animation if animations are loaded
+            // Set appropriate animation
             if (this.animationActions && this.animationActions.idle) {
                 this.setAnimation('idle');
+            }
+            
+            // Update character position if it exists
+            if (this.character) {
+                this.character.position.set(0, 0, 0); // Character at (0,0,0)
             }
         }
 

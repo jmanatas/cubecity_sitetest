@@ -395,10 +395,6 @@ canvas {
     background: rgba(0,0,0,0.9);
 }
 
-#gravity-indicator.off:hover {
-    box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
-}
-
 /* Mobile Joystick Styles */
 #mobile-controls {
     position: fixed;
@@ -637,7 +633,7 @@ canvas {
 /* Gravity Indicator*/
 #gravity-indicator {
     position: fixed;
-    bottom: 150px; /* Position above the throw button */
+    bottom: 230px; /* Position above the throw button */
     right: 20px;
     width: 60px;
     height: 60px;

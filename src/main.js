@@ -17,7 +17,7 @@ import { initMobileControls, checkTouchDevice } from './mobileControls.js';
 const NUM_SPHERES = 25; // Number of spheres to create
 const PLAYER_HEIGHT = 1.8; // Height of the player capsule
 const PLAYER_RADIUS = 0.35; // Radius of the player capsule
-const RESPAWN_HEIGHT = 200; // Height at which the player respawns
+const RESPAWN_HEIGHT = 10; // Height at which the player respawns
 const FALL_THRESHOLD = 20; // Height difference to trigger respawn
 const RESPAWN_DELAY = 8.0; // Delay before respawning
 
@@ -42,13 +42,13 @@ let physicsWorld;
 let avatar;
 let spheres = [];
 let sphereIdx = 0;
-let fallStartTime = null;
-let isFalling = false;
+//let fallStartTime = null;
+//let isFalling = false;
+
+let respawnCooldown = false;
+const RESPAWN_COOLDOWN_TIME = 1.0; // 1 second cooldown
 
 let screenshotTextures = [];
-const screenshotDomains = [
-     'berluti.com', 'chevignon.com', 'dior.com', 'dolcegabbana.com', 'hugoboss.com', 'ports1961.com', 'marinabaysands.com', 'stefanoricci.com', 'zegna.com', 'aliceandolivia.com', 'chanel.com', 'dvf.com', 'graceland.com', 'maxmara.com', 'misssixty.com', 'miumiu.com', 'self-portrait.com', 'snidel.com', 'toryburch.com', 'victoriassecret.com', 'weekendmaxmara.com', 'bape.com', 'aigle.com', 'aimer.com', 'alexandermcqueen.com', 'americanvintage-store.com', 'armani.com', 'balmain.com', 'bauhaus.com', 'brooksbrothers.com', 'calvinklein.com', 'clubmonaco.com', 'descente.com', 'diesel.com', 'edhardyoriginals.com', 'armani.com', 'givenchy.com', 'guess.com', 'hermes.com', 'kenzo.com', 'lacoste.com', 'girbaud.com', 'moncler.com', 'ralphlauren.com', 'ports1961.com', 'prada.com', 'rainbowshops.com', 'ysl.com', 'sandro-paris.com', 'thenorthface.com', 'tommy.com', 'uniqlo.com', 'valentino.com', 'versace.com', 'y-3.com', 'zara.com', 'adidas.com', 'arcteryx.com', 'columbia.com', 'fila.de', 'kswiss.com', 'lululemon.com', 'marathonsports.com', 'nike.com', 'skechers.com', 'vilebrequin.com', 'schiaparelli.com', 'jeanpaulgaultier.com', 'maisonmargiela.com', 'viktor-rolf.com', 'irisvanherpen.com', 'zuhairmurad.com', 'brunellocucinelli.com', 'bottegaveneta.com', 'therow.com', 'tods.com', 'adererror.com', 'musinsa.com', 'yohjiyamamoto.co.jp', 'sacai.jp', 'mooseknucklescanada.com', 'khaite.com', 'lemaire.fr', 'jacquemus.com', 'simonerocha.com', 'ganni.com', 'rickowens.eu', 'anndemeulemeester.com', 'burberry.cn', 'barbour.com', 'gucci.com', 'hm.com', 'carhartt-wip.com', 'carhartt.com', 'dickies.com', 'thefrankieshop.com', 'stussy.com', 'princesspolly.com', 'on.com', 'salomon.com', 'aloyoga.com', 'patagonia.com', 'oakley.com', 'mammut.com', 'hoka.com'
-];
 
 // Highlight effect variables
 let highlightEffectEnabled = false;
@@ -150,8 +150,17 @@ function setupPlayer() {
     avatar = new Avatar(scene, RESPAWN_HEIGHT, PLAYER_HEIGHT, PLAYER_RADIUS);
     
     // Force the avatar to start falling immediately
-    avatar.onFloor = false; // This is the key change
+    avatar.onFloor = false;
     avatar.velocity.y = -0.5; // Small initial downward velocity
+    
+    // Explicitly set position to (0,0,0)
+    const capsuleHeight = avatar.collider.end.y - avatar.collider.start.y;
+    avatar.collider.start.set(0, avatar.playerRadius, 0);
+    avatar.collider.end.set(0, avatar.playerRadius + capsuleHeight, 0);
+    
+    if (avatar.character) {
+        avatar.character.position.set(0, 0, 0);
+    }
 }
 
 function setupSpheres() {
@@ -589,27 +598,65 @@ function handleObjectClick() {
 // Uses loaded textures if available (with correct wrapping and encoding),
 // or falls back to colored materials with random HSL values.
 // Ensures consistent material properties (roughness, metalness) for visual coherence.
-function createRandomMaterial(position, uvs, isVertical) {
-    // Create a texture from the screenshot if available
+// In main.js - Replace the entire createRandomMaterial function with this:
+// In main.js - Replace the entire createRandomMaterial function with this:
+function createRandomMaterial(position, uvs, isVertical, objData) {
+    // Check if this is the ground object at (0,0,0)
+    const isGroundAtOrigin = position.x === 0 && position.y === 0 && position.z === 0;
+    
+    // Check if this is the object named "zGround"
+    const isZGround = objData.name && objData.name.toLowerCase() === 'zground';
+    
+    // Create texture loader
+    const textureLoader = new THREE.TextureLoader();
+    
+    // Use specific textures for specific objects
+    if (isGroundAtOrigin) {
+        // Load grass texture for object at (0,0,0)
+        const grassTexture = textureLoader.load('/src/images/grass.png');
+        grassTexture.wrapS = THREE.RepeatWrapping;
+        grassTexture.wrapT = THREE.RepeatWrapping;
+        grassTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+        
+        return new THREE.MeshStandardMaterial({
+            map: grassTexture,
+            roughness: 0.7,
+            metalness: 0.1,
+            side: THREE.DoubleSide
+        });
+    } else if (isZGround) {
+        // Load water texture for object named "zGround"
+        const waterTexture = textureLoader.load('/src/images/water.png');
+        waterTexture.wrapS = THREE.RepeatWrapping;
+        waterTexture.wrapT = THREE.RepeatWrapping;
+        waterTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+        
+        return new THREE.MeshStandardMaterial({
+            map: waterTexture,
+            roughness: 0.3,
+            metalness: 0.7,
+            side: THREE.DoubleSide
+        });
+    }
+    
+    // Default behavior for all other objects
     const texture = screenshotTextures.length > 0 
         ? screenshotTextures[Math.floor(Math.random() * screenshotTextures.length)]
         : null;
-    // Create a new material
+    
     const material = new THREE.MeshStandardMaterial({
         roughness: 0.7,
         metalness: 0.1,
         side: THREE.DoubleSide
     });
-    // Apply UV mapping
+    
     if (texture) {
         texture.wrapS = THREE.RepeatWrapping;
         texture.wrapT = THREE.RepeatWrapping;
-        texture.anisotropy = renderer.capabilities.getMaxAnisotropy();        
-        // Reset any texture transformations
+        texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
         texture.repeat.set(1, 1);
         texture.offset.set(0, 0);
-        texture.center.set(0.5, 0.5);        
-        // Remove the rotation here since we're handling it in UV mapping
+        texture.center.set(0.5, 0.5);
         texture.rotation = 0;
 
         material.map = texture;
@@ -654,22 +701,24 @@ function animate() {
 
     // Only update if needed
     if (stats) stats.begin();
-    // Cap deltaTime to avoid large jumps
     const deltaTime = Math.min(0.05, clock.getDelta());
     const physicsDeltaTime = deltaTime / STEPS_PER_FRAME;
     
-    // Skip updates when tab is not visible
     if (!document.hidden) {
-        // PROCESS JUMP INPUT ONCE PER FRAME (not in physics loop) - KEEP ONLY THIS ONE
+        // PROCESS JUMP INPUT ONCE PER FRAME
         processJumpInput();
         
-        // Physics updates (using subdivided time)
+        // Physics updates
         if (physicsWorld) {
             for (let i = 0; i < STEPS_PER_FRAME; i++) {
                 controls(physicsDeltaTime);
                 updatePlayer(physicsDeltaTime);
                 physicsWorld.update(physicsDeltaTime, avatar);
-                teleportPlayerIfOob();
+                
+                // NEW: Check for zGround collision to trigger respawn
+                if (checkZGroundCollision()) {
+                    respawnPlayer();
+                }
             }
         }
 
@@ -800,14 +849,13 @@ function updatePlayer(deltaTime) {
 
     avatar.update(deltaTime);
 }
-
+/*
 function teleportPlayerIfOob() {
     const currentTime = clock.getElapsedTime();
     
-    // Use the avatar's current respawn height instead of the global constant
-    const threshold = avatar.respawnHeight - FALL_THRESHOLD;
+    // Use a fixed fall threshold instead of respawn height
+    const threshold = -50; // If player falls below -50 units, respawn
     
-    // Use only third-person check
     if (avatar.collider.start.y <= threshold) {
         if (!isFalling) {
             isFalling = true;
@@ -822,14 +870,81 @@ function teleportPlayerIfOob() {
         isFalling = false;
     }
 }
+*/
 
-function resetPlayerPosition() {
-    // Use the actual collider dimensions instead of playerHeight/playerRadius
+// Add this new function to check for zGround collisions
+function checkZGroundCollision() {
+    if (!physicsWorld || !avatar || respawnCooldown) return false;
+    
+    // Check if avatar is colliding with any object named zGround
+    const result = physicsWorld.worldOctree.capsuleIntersect(avatar.collider);
+    
+    if (result && result.object) {
+        // Check if the collided object is named zGround
+        let currentObject = result.object;
+        while (currentObject) {
+            if (currentObject.userData && currentObject.userData.name && 
+                currentObject.userData.name.toLowerCase() === 'zground') {
+                return true;
+            }
+            currentObject = currentObject.parent;
+        }
+    }
+    
+    return false;
+}
+
+// Add this new respawn function
+function respawnPlayer() {
+    if (respawnCooldown) return;
+    
+    respawnCooldown = true;
+    
     const capsuleHeight = avatar.collider.end.y - avatar.collider.start.y;
     
-    // Reset position to respawn height
-    avatar.collider.start.set(0, avatar.respawnHeight + avatar.collider.radius, 0);
-    avatar.collider.end.set(0, avatar.respawnHeight + capsuleHeight + avatar.collider.radius, 0);
+    // Reset position to (0, 1, 0) - slightly above ground
+    avatar.collider.start.set(0, 1 + avatar.playerRadius, 0);
+    avatar.collider.end.set(0, 1 + avatar.playerRadius + capsuleHeight, 0);
+    
+    // Position character to match capsule
+    if (avatar.character) {
+        avatar.character.position.copy(avatar.collider.start);
+        avatar.character.position.y -= avatar.collider.radius;
+    }
+    
+    // Reset velocity
+    avatar.velocity.set(0, 0, 0);
+    avatar.onFloor = false;
+    
+    // Set animation
+    if (gravityEnabled) {
+        avatar.setAnimation('idle');
+    } else {
+        avatar.setAnimation('fly');
+    }
+    
+    // Reset cooldown after delay
+    setTimeout(() => {
+        respawnCooldown = false;
+    }, RESPAWN_COOLDOWN_TIME * 1000);
+    
+    console.log('Player respawned!');
+}
+
+// Add R key handling to your event listeners
+document.addEventListener('keydown', function(event) {
+    if (event.code === 'KeyR' && !respawnCooldown) {
+        respawnPlayer();
+        event.preventDefault(); // Prevent browser refresh
+    }
+});
+
+function resetPlayerPosition() {
+    const capsuleHeight = avatar.collider.end.y - avatar.collider.start.y;
+    
+    // Reset position to (0,0,0) instead of respawn height
+    avatar.collider.start.set(0, avatar.playerRadius, 0);
+    avatar.collider.end.set(0, avatar.playerRadius + capsuleHeight, 0);
     
     // Position character to match capsule
     if (avatar.character) {
@@ -838,7 +953,6 @@ function resetPlayerPosition() {
     }
     
     // KEEP falling physics state instead of resetting it
-    // Only reset horizontal velocity, keep vertical velocity for falling
     avatar.velocity.x = 0;
     avatar.velocity.z = 0;
     
@@ -1632,15 +1746,15 @@ async function init() {
                 // Recompute normals after reordering
                 geometry.computeVertexNormals();
             }
-            // Get position safely
-            const position = new THREE.Vector3(
-                objData.position?.[0] || 0,
-                objData.position?.[1] || 0,
-                objData.position?.[2] || 0
-            );
+                // Get position safely
+                const position = new THREE.Vector3(
+                    objData.position?.[0] || 0,
+                    objData.position?.[1] || 0,
+                    objData.position?.[2] || 0
+                );
 
-            // Create material with position and UVs
-            const material = createRandomMaterial(position, objData.uvs, isVertical);
+                // Create material with position, UVs, and objData
+                const material = createRandomMaterial(position, objData.uvs, isVertical, objData); // ADD objData PARAMETER
             
             const mesh = new THREE.Mesh(geometry, material);
             mesh.position.copy(position);
@@ -1656,6 +1770,12 @@ async function init() {
             );
             mesh.castShadow = objData.castShadow !== false;
             mesh.receiveShadow = objData.receiveShadow !== false;
+
+            // NEW: Store object name in userData for collision detection
+            if (objData.name) {
+                mesh.userData.name = objData.name;
+            }
+
             worldObjects.add(mesh);
         });
 
@@ -1702,9 +1822,6 @@ async function init() {
                 document.body.classList.toggle('clickable', hasClickableTexture);
             }
         });
-
-        // Check if we're on a touch device
-        checkTouchDevice();
 
     } catch (error) {
         console.error('Initialization failed:', error);
