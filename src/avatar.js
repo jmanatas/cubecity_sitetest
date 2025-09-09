@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { Capsule } from 'three/examples/jsm/math/Capsule.js';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { Capsule } from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/math/Capsule.js';
+import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/loaders/GLTFLoader.js';
 import { AvatarController } from './avatarController.js';
 
 export class Avatar {

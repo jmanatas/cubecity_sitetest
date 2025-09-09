@@ -1,8 +1,8 @@
 // physics.js
-import * as THREE from 'three';
-import { Octree } from 'three/examples/jsm/math/Octree.js';
-import { OctreeHelper } from 'three/examples/jsm/helpers/OctreeHelper.js'; // Add this import
-import { Capsule } from 'three/examples/jsm/math/Capsule.js';
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js';
+import { Octree } from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/math/Octree.js';
+import { Octree } from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/helpers/OctreeHelper.js'; // Add this import
+import { Octree } from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/math/Capsule.js';
 
 // Physics constants
 export const GRAVITY = 30;
