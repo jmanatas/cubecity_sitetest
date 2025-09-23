@@ -14,6 +14,16 @@ import { Avatar } from './avatar.js';
 import { PhysicsWorld, createPhysicsSphere, GRAVITY, SPHERE_RADIUS, STEPS_PER_FRAME } from './physics.js';
 import { initMobileControls } from './mobileControls.js';
 import { screenshotDomains } from './screenshotDomains.js';
+import { 
+    initHighlightEffect, 
+    applyHighlightEffect, 
+    resetHighlightEffect, 
+    handleHighlightMouseMove,
+    setHighlightEffectEnabled,
+    isHighlightEffectEnabled,
+    getHighlightedObject,
+    hasClickableHighlight
+} from './highlightEffect.js';
 
 const NUM_SPHERES = 25; // Number of spheres to create
 const PLAYER_HEIGHT = 1.8; // Height of the player capsule
@@ -34,29 +44,21 @@ let outlinePass;
 let renderPass;
 let effectFXAA;
 let textureUrls = new Map(); // Stores texture-to-url mappings
-let lastMouseX = 0;
-let lastMouseY = 0;
-const MOUSE_DEADZONE = 2; // pixels
 
 let gravityEnabled = true;
 let physicsWorld;
 let avatar;
 let spheres = [];
 let sphereIdx = 0;
-//let fallStartTime = null;
-//let isFalling = false;
 
 let respawnCooldown = false;
 const RESPAWN_COOLDOWN_TIME = 1.0; // 1 second cooldown
 
 let screenshotTextures = [];
 
-// Highlight effect variables
-let highlightEffectEnabled = false;
-let highlightedObject = null;
-let originalMaterials = new Map();
-let lastHighlightTime = 0;
-const HIGHLIGHT_HYSTERESIS = 200; // ms delay before switching objects
+// Water effect variables
+let waterMaterials = [];
+let waterTime = 0;
 
 // Load object/geometry data from JSON file
 async function loadObjectsData() {
@@ -116,37 +118,6 @@ async function loadJSON() {
     }
 }
 
-// Helper functions
-function setupLights() {
-
-    // Hemisphere light (from webgl_lights_hemisphere.html)
-    const hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 2);
-    hemiLight.color.setHSL(0.6, 1, 0.6);
-    hemiLight.groundColor.setHSL(0.095, 1, 0.75);
-    hemiLight.position.set(0, 50, 0);
-    scene.add(hemiLight);
-
-    // Directional light (from webgl_lights_hemisphere.html)
-    const dirLight = new THREE.DirectionalLight(0xffffff, 3);
-    dirLight.color.setHSL(0.1, 1, 0.95);
-    dirLight.position.set(-1, 1.75, 1);
-    dirLight.position.multiplyScalar(30);
-    scene.add(dirLight);
-
-    // Configure shadows (optional)
-    dirLight.castShadow = true;
-    dirLight.shadow.mapSize.width = 2048;
-    dirLight.shadow.mapSize.height = 2048;
-    
-    const d = 50;
-    dirLight.shadow.camera.left = -d;
-    dirLight.shadow.camera.right = d;
-    dirLight.shadow.camera.top = d;
-    dirLight.shadow.camera.bottom = -d;
-    dirLight.shadow.camera.far = 3500;
-    dirLight.shadow.bias = -0.0001;
-}
-
 function setupPlayer() {
     avatar = new Avatar(scene, RESPAWN_HEIGHT, PLAYER_HEIGHT, PLAYER_RADIUS);
     
@@ -170,7 +141,12 @@ function setupSpheres() {
         return;
     }
 
-    const sphereMaterial = new THREE.MeshLambertMaterial({ color: 0xdede8d });
+    // Change from MeshLambertMaterial to MeshStandardMaterial
+    const sphereMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0xdede8d,
+        roughness: 0.3,      // Less rough for more reflection
+        metalness: 0.7       // More metallic to reflect environment
+    });
 
     for (let i = 0; i < NUM_SPHERES; i++) {
         const mesh = new THREE.Mesh(
@@ -186,7 +162,7 @@ function setupSpheres() {
         spheres.push(sphere);
     }
 }
-
+// Function to throw a ball from the avatar's position in the camera's look direction
 function throwBall() {
     const sphere = spheres[sphereIdx];
     
@@ -197,7 +173,8 @@ function throwBall() {
     sphere.collider.center.copy(avatar.collider.end)
         .addScaledVector(direction, avatar.collider.radius * 1.5);
 
-    const impulse = 15; // Simplified impulse calculation
+    // Increased impulse from 15 to 25 for longer travel distance
+    const impulse = 100; 
     sphere.velocity.copy(direction).multiplyScalar(impulse);
     sphere.velocity.addScaledVector(avatar.velocity, 2);
 
@@ -599,8 +576,6 @@ function handleObjectClick() {
 // Uses loaded textures if available (with correct wrapping and encoding),
 // or falls back to colored materials with random HSL values.
 // Ensures consistent material properties (roughness, metalness) for visual coherence.
-// In main.js - Replace the entire createRandomMaterial function with this:
-// In main.js - Replace the entire createRandomMaterial function with this:
 function createRandomMaterial(position, uvs, isVertical, objData) {
     // Check if this is the ground object at (0,0,0)
     const isGroundAtOrigin = position.x === 0 && position.y === 0 && position.z === 0;
@@ -614,7 +589,7 @@ function createRandomMaterial(position, uvs, isVertical, objData) {
     // Use specific textures for specific objects
     if (isGroundAtOrigin) {
         // Load grass texture for object at (0,0,0)
-        const grassTexture = textureLoader.load('./src/images/grass.png');
+        const grassTexture = textureLoader.load('/src/images/grass.png');
         grassTexture.wrapS = THREE.RepeatWrapping;
         grassTexture.wrapT = THREE.RepeatWrapping;
         grassTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
@@ -623,21 +598,45 @@ function createRandomMaterial(position, uvs, isVertical, objData) {
             map: grassTexture,
             roughness: 0.7,
             metalness: 0.1,
-            side: THREE.DoubleSide
+            side: THREE.DoubleSide,
+            shadowSide: THREE.FrontSide,  // ADD THIS LINE
+            transparent: false           // ADD THIS LINE
         });
     } else if (isZGround) {
-        // Load water texture for object named "zGround"
-        const waterTexture = textureLoader.load('./src/images/water.png');
+        // Load water texture
+        const waterTexture = textureLoader.load('/src/images/water.png');
         waterTexture.wrapS = THREE.RepeatWrapping;
         waterTexture.wrapT = THREE.RepeatWrapping;
         waterTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
         
-        return new THREE.MeshStandardMaterial({
+        // Water material optimized for maximum HDRI reflections
+        const waterMaterial = new THREE.MeshPhysicalMaterial({
+            color: 0xffffff, // Neutral white - HDRI provides all color
             map: waterTexture,
-            roughness: 0.3,
-            metalness: 0.7,
-            side: THREE.DoubleSide
+            roughness: 0.05,   // Very smooth surface for sharp reflections
+            metalness: 0.9,    // High metalness for strong reflections
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.85,     // Slightly more transparent to show reflections
+            envMapIntensity: 2.5, // BOOSTED: Much stronger environment reflections
+            transmission: 0.2,    // Reduced transmission to prioritize reflections
+            thickness: 0.3,       // Thinner for better surface reflections
+            specularIntensity: 1.2, // Enhanced specular highlights
+            clearcoat: 0.5,       // Adds extra reflective layer
+            clearcoatRoughness: 0.1, // Smooth clearcoat for better reflections
+            shadowSide: THREE.FrontSide  // ADD THIS LINE
         });
+        
+        // Store reference for animation
+        waterMaterial.userData = {
+            isWater: true,
+            texture: waterTexture,
+            time: 0,
+            speed: 0.0015 // Even slower for calmer water
+        };
+        
+        waterMaterials.push(waterMaterial);
+        return waterMaterial;
     }
     
     // Default behavior for all other objects
@@ -645,10 +644,13 @@ function createRandomMaterial(position, uvs, isVertical, objData) {
         ? screenshotTextures[Math.floor(Math.random() * screenshotTextures.length)]
         : null;
     
+    // FIXED: Added missing comma and proper property formatting
     const material = new THREE.MeshStandardMaterial({
         roughness: 0.7,
-        metalness: 0.1,
-        side: THREE.DoubleSide
+        metalness: 0.1, // Add slight metalness to benefit from HDRI reflections
+        side: THREE.DoubleSide,
+        shadowSide: THREE.FrontSide,  // ADD THIS LINE
+        transparent: false            // ADD THIS LINE
     });
     
     if (texture) {
@@ -669,13 +671,59 @@ function createRandomMaterial(position, uvs, isVertical, objData) {
     return material;
 }
 
+// Create a simple water normal map
+function createSimpleWaterNormalMap() {
+    const canvas = document.createElement('canvas');
+    const size = 256;
+    canvas.width = size;
+    canvas.height = size;
+    
+    const ctx = canvas.getContext('2d');
+    const imageData = ctx.createImageData(size, size);
+    const data = imageData.data;
+    
+    // Create a wavy normal map pattern
+    for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+            const index = (y * size + x) * 4;
+            
+            // Create wave patterns using sine waves
+            const wave1 = Math.sin(x / 25 + y / 30) * 0.5 + 0.5;
+            const wave2 = Math.cos(x / 20 - y / 15) * 0.5 + 0.5;
+            
+            // Combine waves for more natural pattern
+            const normalX = wave1 * 0.6 + wave2 * 0.4;
+            const normalY = wave2 * 0.7 + wave1 * 0.3;
+            const normalZ = 1.0;
+            
+            // Convert to normal map format (0-255)
+            data[index] = Math.floor(normalX * 255);     // R (X direction)
+            data[index + 1] = Math.floor(normalY * 255); // G (Y direction) 
+            data[index + 2] = Math.floor(normalZ * 255); // B (Z direction)
+            data[index + 3] = 255;                       // A
+        }
+    }
+    
+    ctx.putImageData(imageData, 0, 0);
+    
+    const normalTexture = new THREE.CanvasTexture(canvas);
+    normalTexture.wrapS = THREE.RepeatWrapping;
+    normalTexture.wrapT = THREE.RepeatWrapping;
+    normalTexture.needsUpdate = true;
+    
+    return normalTexture;
+}
+
 // Sets up a fallback scene with basic lighting and a ground plane.
 function setupFallbackScene() {
     // Add lights
     const light = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(light);
     const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-    directionalLight.position.set(0, 1, 0);
+    directionalLight.castShadow = true;
+    directionalLight.position.set(0, 10, 0);
+    directionalLight.shadow.mapSize.width = 1024;
+    directionalLight.shadow.mapSize.height = 1024;
     scene.add(directionalLight);
 
     // Add floor
@@ -699,6 +747,28 @@ function setupFallbackScene() {
 // Uses fixed timestep physics (STEPS_PER_FRAME) for stability.
 function animate() {
     requestAnimationFrame(animate);
+    
+    // Update water textures with very slow, smooth animation
+    waterMaterials.forEach(material => {
+        if (material.userData && material.userData.isWater) {
+            material.userData.time += material.userData.speed;
+            
+            // Very gentle, slow movement - almost imperceptible
+            const offsetX = Math.sin(material.userData.time * 0.2) * 0.0015;
+            const offsetY = Math.cos(material.userData.time * 0.15) * 0.0015;
+            
+            if (material.map) {
+                material.map.offset.x += offsetX;
+                material.map.offset.y += offsetY;
+            }
+            
+            if (material.normalMap) {
+                // Normal map moves at slightly different rate for more natural look
+                material.normalMap.offset.x += offsetX * 1.2;
+                material.normalMap.offset.y += offsetY * 0.8;
+            }
+        }
+    });
 
     // Only update if needed
     if (stats) stats.begin();
@@ -734,7 +804,7 @@ function animate() {
             avatar.updateThirdPersonCamera(camera);
         }
 
-        composer.render(scene, camera);
+        composer.render();
     }
     
     if (stats) stats.end();
@@ -761,7 +831,6 @@ function processJumpInput() {
 // Translates keyboard states into movement vectors and animations,
 // handling jumping, camera-relative movement, and animation transitions.
 // Uses deltaTime for frame-rate independent behavior.
-// In main.js, update the controls function to ensure jump physics is applied:
 function controls(deltaTime) {
     if (!avatar || !avatar.controller) {
         return;
@@ -850,28 +919,6 @@ function updatePlayer(deltaTime) {
 
     avatar.update(deltaTime);
 }
-/*
-function teleportPlayerIfOob() {
-    const currentTime = clock.getElapsedTime();
-    
-    // Use a fixed fall threshold instead of respawn height
-    const threshold = -50; // If player falls below -50 units, respawn
-    
-    if (avatar.collider.start.y <= threshold) {
-        if (!isFalling) {
-            isFalling = true;
-            fallStartTime = currentTime;
-        }
-        
-        if (currentTime - fallStartTime >= RESPAWN_DELAY) {
-            resetPlayerPosition();
-            isFalling = false;
-        }
-    } else {
-        isFalling = false;
-    }
-}
-*/
 
 // Add this new function to check for zGround collisions
 function checkZGroundCollision() {
@@ -995,15 +1042,18 @@ function onWindowResize() {
     // Update post-processing
     effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight);
     composer.setSize(window.innerWidth, window.innerHeight);
+    
+    // Note: We can't update SSAO pass size here since it's dynamically loaded
+    // It will automatically handle resize when recreated
 }
 
 // Sets up the click handler for objects in the scene.
 function setupObjectClickHandler() {
     document.addEventListener('click', (event) => {
-        if (!highlightEffectEnabled || !highlightedObject) return;
+        if (!isHighlightEffectEnabled() || !getHighlightedObject()) return;
         
         // Get texture URL more reliably
-        let material = highlightedObject.material;
+        let material = getHighlightedObject().material;
         if (Array.isArray(material)) material = material[0];
         
         if (material.map && textureUrls.has(material.map)) {
@@ -1057,8 +1107,7 @@ function setupEventListeners() {
         
         // Check if Alt is pressed
         if (event.code === 'AltLeft') {
-            highlightEffectEnabled = true;
-            document.body.classList.add('highlight-mode');
+            setHighlightEffectEnabled(true);
             // Force update even without mouse movement
             const mouse = new THREE.Vector2(
                 (renderer.domElement.width/2) / window.innerWidth * 2 - 1,
@@ -1075,6 +1124,53 @@ function setupEventListeners() {
         // Handle Q and E only when gravity is DISABLED
         if (!gravityEnabled && (event.code === 'KeyQ' || event.code === 'KeyE')) {
             // Prevent default to avoid any browser shortcuts
+            event.preventDefault();
+        }
+
+        // Replace this section in your keydown event listener:
+        if (event.code === 'KeyH') {
+            // Toggle between different shadow intensity levels
+            let shadowIntensity = 1.0;
+            
+            scene.traverse((object) => {
+                if (object.isDirectionalLight && object.castShadow) {
+                    // Store current intensity in userData if not set
+                    if (object.userData.shadowIntensity === undefined) {
+                        object.userData.shadowIntensity = 1.0;
+                    }
+                    
+                    // Cycle through intensity levels
+                    if (object.userData.shadowIntensity === 1.0) {
+                        object.userData.shadowIntensity = 0.7; // Lighter shadows
+                        object.intensity = 0.8; // Also reduce light intensity
+                        console.log("Shadows: Lighter");
+                    } else if (object.userData.shadowIntensity === 0.7) {
+                        object.userData.shadowIntensity = 1.5; // Darker shadows
+                        object.intensity = 1.2; // Increase light intensity
+                        console.log("Shadows: Darker");
+                    } else {
+                        object.userData.shadowIntensity = 1.0; // Normal shadows
+                        object.intensity = 1.0; // Reset light intensity
+                        console.log("Shadows: Normal");
+                    }
+                    
+                    shadowIntensity = object.userData.shadowIntensity;
+                }
+            });
+            
+            // Also adjust ambient light to complement shadow changes
+            scene.traverse((object) => {
+                if (object.isAmbientLight) {
+                    if (shadowIntensity === 1.5) { // Darker shadows
+                        object.intensity = 0.6; // Reduce ambient light
+                    } else if (shadowIntensity === 0.7) { // Lighter shadows
+                        object.intensity = 0.9; // Increase ambient light
+                    } else {
+                        object.intensity = 0.75; // Normal ambient light
+                    }
+                }
+            });
+            
             event.preventDefault();
         }
 
@@ -1096,10 +1192,10 @@ function setupEventListeners() {
         // Check if pointer lock is active
         if (document.pointerLockElement === document.body) {
             // Pointer lock is active
-            if (highlightEffectEnabled) {
+            if (isHighlightEffectEnabled()) {
                 document.body.classList.add('highlight-mode');
                 // Check if highlighted object has a texture URL
-                if (highlightedObject && highlightedObject.material.map && textureUrls.has(highlightedObject.material.map)) {
+                if (hasClickableHighlight()) {
                     document.body.classList.add('clickable');
                 }
             } else {
@@ -1112,15 +1208,15 @@ function setupEventListeners() {
             document.body.style.cursor = 'auto';
         }
     });
-    // End pointer lock change
+    
+    // Handle visibility change
     document.addEventListener('visibilitychange', () => {
-        if (document.hidden && highlightEffectEnabled) {
-            highlightEffectEnabled = false;
+        if (document.hidden && isHighlightEffectEnabled()) {
+            setHighlightEffectEnabled(false);
             keyStates['AltLeft'] = false;
-            resetHighlightEffect();
             document.body.classList.remove('highlight-mode', 'clickable');
         }
-        });
+    });
 
     // End Alt key highlight
     document.addEventListener('keyup', function(event) {
@@ -1133,9 +1229,7 @@ function setupEventListeners() {
         }
         
         if (event.code === 'AltLeft') {
-            highlightEffectEnabled = false;
-            resetHighlightEffect();
-            document.body.classList.remove('highlight-mode', 'clickable');
+            setHighlightEffectEnabled(false);
         }
         // Handle Space key release
         if (event.code === 'Space') {
@@ -1151,72 +1245,15 @@ function setupEventListeners() {
     });
     
     // detect objects under cursor - Raycaster
-    document.addEventListener('mousemove', (event) => {
-    if (!highlightEffectEnabled) return;
-    
-    // Check if mouse moved enough
-    if (Math.abs(event.clientX - lastMouseX) < MOUSE_DEADZONE && 
-        Math.abs(event.clientY - lastMouseY) < MOUSE_DEADZONE) {
-        return;
-    }
+    document.addEventListener('mousemove', handleHighlightMouseMove);
 
-    // Update last mouse position
-    lastMouseX = event.clientX;
-    lastMouseY = event.clientY;
-
-    // Calculate mouse position in normalized device coordinates (-1 to +1) for both components
-    const mouse = new THREE.Vector2(
-        (event.clientX / window.innerWidth) * 2 - 1,
-        -(event.clientY / window.innerHeight) * 2 + 1
-    );
-
-    // Create a raycaster from the camera
-    const raycaster = new THREE.Raycaster();
-    raycaster.setFromCamera(mouse, camera);
-    
-    // Improved intersection detection:
-    raycaster.params.Points.threshold = 0.1; // For point-like objects
-    raycaster.params.Line.threshold = 0.1;   // For line-like objects
-
-    // Check for intersections
-    const intersects = raycaster.intersectObjects(worldObjects.children, true);
-
-    // hysteresis to prevent flickering between objects
-    if (intersects.length > 0) {
-        const now = performance.now();
-        const bestIntersect = intersects[0];
-        
-        // If we have a current highlighted object
-        if (highlightedObject) {
-            const currentIndex = intersects.findIndex(i => i.object === highlightedObject);
-            
-            // If current object is still in the list and we're not past hysteresis delay
-            if (currentIndex >= 0 && (now - lastHighlightTime < HIGHLIGHT_HYSTERESIS)) {
-                // Keep the current highlight
-                return;
-            }
-        }
-        
-        // Only change highlight if it's a different object
-        if (!highlightedObject || highlightedObject !== bestIntersect.object) {
-            applyHighlightEffect(bestIntersect.object); // This maintains dimming
-        }
-        } else if (highlightedObject) {
-            // Only reset if we had something highlighted
-            resetHighlightEffect();
-        }
-    });
-
-    // Continuous Alt check - modified to maintain dimming
+    // Continuous Alt check
     function checkAltKeyState() {
-        //
-        if (highlightEffectEnabled) {
+        if (isHighlightEffectEnabled()) {
             if (!keyStates['AltLeft']) {
                 // Alt was released
-                highlightEffectEnabled = false;
-                resetHighlightEffect();
-                document.body.classList.remove('highlight-mode', 'clickable');
-            } else if (!highlightedObject) {
+                setHighlightEffectEnabled(false);
+            } else if (!getHighlightedObject()) {
                 // Alt is held but no object highlighted - recheck
                 const mouse = new THREE.Vector2(
                     (renderer.domElement.width/2) / window.innerWidth * 2 - 1,
@@ -1232,14 +1269,16 @@ function setupEventListeners() {
             }
         }
         requestAnimationFrame(checkAltKeyState);
-
-        // Add this to your setupEventListeners() function or somewhere in the initialization
-        const toggleBtn = document.getElementById('toggle-object-list');
-        if (toggleBtn) {
-            toggleBtn.addEventListener('click', toggleTeleportWindow);
-        }
     }
+    
+    // Start the Alt key state checker
     checkAltKeyState();
+
+    // Add toggle button functionality
+    const toggleBtn = document.getElementById('toggle-object-list');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', toggleTeleportWindow);
+    }
 }
 
 // Toggle Teleport windows with mouse click or using 'T' key
@@ -1268,101 +1307,6 @@ function toggleTeleportWindow() {
     if (isHidden && document.pointerLockElement === document.body) {
         document.exitPointerLock();
     }
-}
-
-// Apply highlight effect to the object
-function applyHighlightEffect(object) {
-    if (highlightedObject === object) return;
-    
-    resetHighlightEffect();
-    
-    highlightedObject = object;
-    
-    // Outline effect (existing code)
-    const bbox = new THREE.Box3().setFromObject(object);
-    const size = bbox.getSize(new THREE.Vector3()).length();
-    outlinePass.edgeStrength = size < 1.0 ? 5.0 : 3.0;
-    outlinePass.selectedObjects = [object];
-    
-    // Restore dimming effect
-    worldObjects.traverse((child) => {
-        if (!child.isMesh || child === object || !child.material) return;
-        
-        if (!originalMaterials.has(child)) {
-            originalMaterials.set(child, child.material);
-        }
-        
-        const desatMaterial = child.material.clone();
-        desatMaterial.color.setHSL(0, 0, 0.3); // Dimming effect
-        child.material = desatMaterial;
-    });
-    
-    // Check if object has a clickable texture
-    const hasClickableTexture = object.material.map && textureUrls.has(object.material.map);
-    
-    // Update cursor classes
-    document.body.classList.add('highlight-mode');
-    if (hasClickableTexture) {
-        document.body.classList.add('clickable');
-    } else {
-        document.body.classList.remove('clickable');
-    }
-    
-    // Add clickable class if texture has URL
-    document.body.classList.toggle('clickable', hasClickableTexture);
-    
-    // raycaster precision for small objects
-    worldObjects.traverse((child) => {
-        // Check if child is a mesh
-        if (child.isMesh) {
-            // Increase precision for small objects
-            if (child.geometry.boundingSphere) {
-                const radius = child.geometry.boundingSphere.radius;
-                if (radius < 1.0) { // Adjust threshold as needed
-                    child.raycast = function(raycaster, intersects) {
-                        const geometry = this.geometry;
-                        const matrixWorld = this.matrixWorld;
-                        
-                        // Use more precise raycasting for small objects
-                        const threshold = raycaster.params.Points.threshold;
-                        raycaster.params.Points.threshold = 0.5; // Increased threshold
-                        
-                        // Call original raycast
-                        THREE.Mesh.prototype.raycast.call(this, raycaster, intersects);
-                        
-                        // Restore threshold
-                        raycaster.params.Points.threshold = threshold;
-                    };
-                }
-            }
-        }
-    });
-}
-// Updated reset function
-function resetHighlightEffect() {
-    if (!highlightedObject) return;
-    
-    // Clear cursor classes
-    document.body.classList.remove('clickable');
-    if (!highlightEffectEnabled) {
-        document.body.classList.remove('highlight-mode');
-    }
-    
-    // Remove clickable class
-    document.body.classList.remove('clickable');
-    
-    // Clear outline selection
-    outlinePass.selectedObjects = [];
-
-    // Restore original materials
-    worldObjects.traverse((child) => {
-        if (originalMaterials.has(child)) {
-            child.material = originalMaterials.get(child);
-            originalMaterials.delete(child);
-        }
-    });
-    
-    highlightedObject = null;
 }
 
 // Loads screenshot textures from predefined domains
@@ -1432,7 +1376,71 @@ async function loadScreenshotTextures() {
   loadingOverlay.style.display = 'none';
 }
 
-let gravityIndicator;
+// Add this debug function to check the avatar's materials
+function debugAvatarMaterials() {
+    console.log("=== AVATAR MATERIAL DEBUG ===");
+    if (avatar && avatar.character) {
+        avatar.character.traverse((child) => {
+            if (child.isMesh) {
+                console.log("Mesh:", child.name);
+                console.log("  - castShadow:", child.castShadow);
+                console.log("  - receiveShadow:", child.receiveShadow);
+                
+                if (child.material) {
+                    if (Array.isArray(child.material)) {
+                        console.log("  - Materials:", child.material.length);
+                        child.material.forEach((mat, i) => {
+                            console.log(`    [${i}]:`, mat.constructor.name);
+                            console.log(`      - transparent:`, mat.transparent);
+                            console.log(`      - alphaTest:`, mat.alphaTest);
+                        });
+                    } else {
+                        console.log("  - Material:", child.material.constructor.name);
+                        console.log("    - transparent:", child.material.transparent);
+                        console.log("    - alphaTest:", child.material.alphaTest);
+                    }
+                }
+            }
+        });
+    }
+}
+
+// Add this function to create SSAO pass after scene is loaded
+function setupSSAOPass() {
+    // Dynamically import SSAOPass to avoid module loading issues
+    import('three/examples/jsm/postprocessing/SSAOPass.js')
+        .then(({ SSAOPass }) => {
+            const ssaoPass = new SSAOPass(
+                scene,
+                camera,
+                window.innerWidth,
+                window.innerHeight
+            );
+            ssaoPass.kernelRadius = 16;
+            ssaoPass.minDistance = 0.1;
+            ssaoPass.maxDistance = 1;
+            ssaoPass.output = SSAOPass.OUTPUT.Default;
+            
+            // Recreate the composer with SSAO pass
+            const newComposer = new EffectComposer(renderer);
+            newComposer.addPass(renderPass);
+            newComposer.addPass(ssaoPass);
+            newComposer.addPass(outlinePass);
+            newComposer.addPass(effectFXAA);
+            
+            // Replace the old composer
+            composer = newComposer;
+            
+            console.log("SSAO enabled successfully");
+        })
+        .catch(error => {
+            console.error("Failed to load SSAOPass:", error);
+            console.log("Continuing without SSAO");
+        });
+}
+
+// Call this after your avatar is loaded
+setTimeout(debugAvatarMaterials, 3000);
 
 // Main initialization function that sets up the entire Three.js application:
 // 1. Creates core Three.js components (scene, camera, renderer)
@@ -1489,7 +1497,8 @@ async function init() {
             powerPreference: "high-performance",
             logarithmicDepthBuffer: false
         });
-        renderer.shadowMap.enabled = false;
+        renderer.shadowMap.enabled = true; // enables Shadows
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Better quality shadows
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.outputEncoding = THREE.sRGBEncoding;
@@ -1559,18 +1568,100 @@ async function init() {
         // Loader for HDR environment map
         const loader = new RGBELoader();
         loader.load('./src/hdri/qwantani_afternoon_2k.hdr', (texture) => {
-                texture.mapping = THREE.EquirectangularReflectionMapping;
-                scene.background = texture;
-            }, undefined, (error) => {
-                console.error('Error loading HDR texture:', error);
+            texture.mapping = THREE.EquirectangularReflectionMapping;
+            
+            // Set as both background and environment
+            scene.background = texture;
+            scene.environment = texture;
+            
+            // Keep current environment intensity
+            scene.environmentIntensity = 0.5;
+            scene.environmentRotation.y = 0;
+            
+            // Keep current tone mapping exposure
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 0.75;
+            
+            console.log("HDRI lighting enabled with enhanced shadows");
+            
+            // ENHANCE the directional light for stronger shadows
+            const shadowLight = new THREE.DirectionalLight(0xffffff, 1.2); // Slightly increased from 1.0
+            shadowLight.position.set(10, 30, 10);
+            shadowLight.castShadow = true;
+
+            // Configure shadow properties for more prominent shadows
+            shadowLight.shadow.mapSize.width = 4096; // Higher resolution for sharper shadows
+            shadowLight.shadow.mapSize.height = 4096;
+            shadowLight.shadow.camera.near = 0.1;
+            shadowLight.shadow.camera.far = 100;
+            shadowLight.shadow.camera.left = -30;
+            shadowLight.shadow.camera.right = 30;
+            shadowLight.shadow.camera.top = 30;
+            shadowLight.shadow.camera.bottom = -30;
+
+            // Adjust shadow properties for more prominent shadows
+            shadowLight.shadow.bias = -0.0001; // Reduced bias for cleaner shadows
+            shadowLight.shadow.radius = 1; // Sharper shadow edges
+            
+            // Increase shadow darkness significantly
+            shadowLight.shadow.darkness = 1.2; // Increased beyond 1.0 for darker shadows
+
+            scene.add(shadowLight);
+
+            // Keep ambient light as is
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+            scene.add(ambientLight);
+
+            // ADD THIS LINE after setting up lights
+            adjustShadowProperties();
+            
+        }, undefined, (error) => {
+            console.error('Error loading HDR texture:', error);
+        });
+        
+        function adjustShadowProperties() {
+            // Make shadows more prominent
+            renderer.shadowMap.autoUpdate = true;
+            renderer.shadowMap.needsUpdate = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Ensure soft shadows
+            
+            // Adjust shadow properties for all materials to enhance shadow visibility
+            scene.traverse((object) => {
+                if (object.isMesh && object.material) {
+                    // Make sure objects cast and receive shadows properly
+                    if (object.castShadow !== undefined) {
+                        object.castShadow = true; // Ensure all meshes cast shadows
+                    }
+                    
+                    if (object.receiveShadow !== undefined && object !== avatar.character) {
+                        object.receiveShadow = true; // Ensure all meshes receive shadows (except avatar)
+                    }
+                    
+                    if (Array.isArray(object.material)) {
+                        object.material.forEach(mat => {
+                            if (mat.isMaterial) {
+                                mat.shadowSide = THREE.FrontSide;
+                                // Slightly increase roughness for better shadow definition
+                                if (mat.roughness !== undefined) mat.roughness = Math.max(mat.roughness, 0.7);
+                                // Reduce metalness to minimize reflections that wash out shadows
+                                if (mat.metalness !== undefined) mat.metalness = Math.min(mat.metalness, 0.3);
+                            }
+                        });
+                    } else {
+                        object.material.shadowSide = THREE.FrontSide;
+                        if (object.material.roughness !== undefined) {
+                            object.material.roughness = Math.max(object.material.roughness, 0.7);
+                        }
+                        if (object.material.metalness !== undefined) {
+                            object.material.metalness = Math.min(object.material.metalness, 0.3);
+                        }
+                    }
+                }
             });
+        }
 
         // Handle window resize
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
+        window.addEventListener('resize', onWindowResize);
 
         // Set up post-processing
         composer = new EffectComposer(renderer);
@@ -1583,15 +1674,6 @@ async function init() {
             scene,
             camera
         );
-
-        // Pink outline configuration
-        outlinePass.visibleEdgeColor.set(0xff69b4); // Pink color
-        outlinePass.hiddenEdgeColor.set(0xff1493); // Darker pink
-        outlinePass.edgeStrength = 3.0; // Line thickness
-        outlinePass.edgeGlow = 0.5; // Glow intensity
-        outlinePass.edgeThickness = 1.0; // Edge thickness
-        outlinePass.pulsePeriod = 0; // No pulsation
-
         composer.addPass(outlinePass);
 
         // Optional: Anti-aliasing
@@ -1656,7 +1738,6 @@ async function init() {
                 geometry.setIndex(objData.indices);
             }
 
-            // In your object creation loop, replace the UV generation with:
             // Get geometry data (only declare these once per object)
             geometry.computeBoundingBox();
             const boundingBox = geometry.boundingBox;
@@ -1716,6 +1797,7 @@ async function init() {
                     );
                 }
             }
+            
             // Set UVs
             geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
 
@@ -1736,27 +1818,20 @@ async function init() {
                     Math.abs(normal.y),
                     Math.abs(normal.z)
                 );
-                // Determine winding order
-                if (absNormal.x > absNormal.z) {
-                    // For X-facing walls, ensure vertices are ordered clockwise when viewed from front
-                    // (Add your vertex reordering logic here)
-                } else {
-                    // For Z-facing walls, ensure consistent ordering
-                    // (Add your vertex reordering logic here)
-                }
                 // Recompute normals after reordering
                 geometry.computeVertexNormals();
             }
-                // Get position safely
-                const position = new THREE.Vector3(
-                    objData.position?.[0] || 0,
-                    objData.position?.[1] || 0,
-                    objData.position?.[2] || 0
-                );
-
-                // Create material with position, UVs, and objData
-                const material = createRandomMaterial(position, objData.uvs, isVertical, objData); // ADD objData PARAMETER
             
+            // Get position safely
+            const position = new THREE.Vector3(
+                objData.position?.[0] || 0,
+                objData.position?.[1] || 0,
+                objData.position?.[2] || 0
+            );
+
+            // Create material with position, UVs, and objData
+            const material = createRandomMaterial(position, uvs, isVertical, objData);
+            // Create mesh and set properties
             const mesh = new THREE.Mesh(geometry, material);
             mesh.position.copy(position);
             mesh.rotation.set(
@@ -1769,8 +1844,15 @@ async function init() {
                 objData.scale?.[1] || 1,
                 objData.scale?.[2] || 1
             );
-            mesh.castShadow = objData.castShadow !== false;
-            mesh.receiveShadow = objData.receiveShadow !== false;
+            mesh.castShadow = objData.castShadow !== false;    // Should cast shadow by default
+            mesh.receiveShadow = objData.receiveShadow !== false; // Should receive shadow by default
+
+            // In your object creation loop, ensure ground objects receive shadows
+            if (objData.name && objData.name.toLowerCase().includes('ground')) {
+                mesh.receiveShadow = true;
+                mesh.castShadow = false; // Ground usually doesn't cast shadows
+                console.log("Ground object configured to receive shadows:", objData.name);
+            }
 
             // NEW: Store object name in userData for collision detection
             if (objData.name) {
@@ -1787,13 +1869,22 @@ async function init() {
         scene.add(worldObjects);
         worldOctree.fromGraphNode(worldObjects);
 
-        // Setup lights
-        setupLights();
+        // Add world to scene
+        scene.add(worldObjects);
+        worldOctree.fromGraphNode(worldObjects);
 
         // Set initial camera position
         if (avatar.character) {
             avatar.updateThirdPersonCamera(camera);
         }
+
+        // Initialize highlight effect system
+        initHighlightEffect(outlinePass, worldObjects, textureUrls, camera, renderer);
+
+        // Setup SSAO after everything is loaded
+        setTimeout(() => {
+            setupSSAOPass();
+        }, 1000);
 
         // Setup event listeners
         setupEventListeners();
@@ -1809,18 +1900,16 @@ async function init() {
         }, false);
 
         renderer.domElement.addEventListener('mouseleave', () => {
-            if (highlightEffectEnabled) {
+            if (isHighlightEffectEnabled()) {
                 // Keep effect active but remove clickable state
                 document.body.classList.remove('clickable');
             }
         });
 
         renderer.domElement.addEventListener('mouseenter', () => {
-            if (highlightEffectEnabled && highlightedObject) {
+            if (isHighlightEffectEnabled() && getHighlightedObject()) {
                 // Restore clickable state if applicable
-                const hasClickableTexture = highlightedObject.material.map && 
-                                        textureUrls.has(highlightedObject.material.map);
-                document.body.classList.toggle('clickable', hasClickableTexture);
+                document.body.classList.toggle('clickable', hasClickableHighlight());
             }
         });
 

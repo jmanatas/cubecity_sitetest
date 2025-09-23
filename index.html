@@ -32,7 +32,7 @@
         T opens the Teleport window<br/>
         Controls, shows the avatar and camera controls for mobile devices<br/>
         R to respawn<br/>
-        Touch water (zGround) to respawn<br/>
+        H to toggle through shadow intensity modes<br/>
         tip:<br/>
         it's best to turn off gravity (F) before using Teleport,<br/>
         you might be traveling to a location where there's no ground<br/>
@@ -49,7 +49,7 @@
     
     <!-- Redirect dialog (separate element) -->
     <div id="redirect-dialog" class="dialog-overlay" style="display: none;">
-        <div class="dialog-content">
+        <div class="dialog-content">`
             <p>Open this website in a new tab?</p>
             <div class="dialog-buttons">
                 <button id="cancel-redirect">Cancel</button>
@@ -74,6 +74,7 @@
     </div>
     
     <script type="module" src="./src/main.js"></script>
+    <script type="module" src="./highlightEffect.js"></script>
 
     <div id="action-buttons-container">
         <div id="mobile-controls">

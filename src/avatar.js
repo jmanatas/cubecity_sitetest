@@ -45,8 +45,8 @@ export class Avatar {
         // Camera
         this.cameraMode = 'thirdPerson';
         this.cameraTarget = new THREE.Vector3();
-        this.cameraDistance = 5;
-        this.cameraHeight = 2;
+        this.cameraDistance = 7.5;
+        this.cameraHeight = 4;
         this.cameraAzimuth = 0;
         this.cameraPolar = Math.PI / 3;
         
@@ -94,8 +94,6 @@ export class Avatar {
             
             this.velocity.set(0, 0, 0);
             this.isJumping = false;
-            // DON'T set onFloor to true - let physics determine this
-            // this.onFloor = true; // REMOVE THIS LINE
             
             // Set appropriate animation
             if (this.animationActions && this.animationActions.idle) {
@@ -113,6 +111,31 @@ export class Avatar {
         try {
             const gltf = await loader.loadAsync(modelPath);
             this.character = gltf.scene;
+
+            // Enable shadow casting on the character and all its materials
+            this.character.traverse((child) => {
+                if (child.isMesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                    
+                    // Ensure the material is configured for shadow casting
+                    if (child.material) {
+                        // For standard materials
+                        if (child.material instanceof THREE.MeshStandardMaterial) {
+                            child.material.shadowSide = THREE.FrontSide;
+                        }
+                        
+                        // If it's an array of materials (multi-material object)
+                        if (Array.isArray(child.material)) {
+                            child.material.forEach(material => {
+                                if (material instanceof THREE.MeshStandardMaterial) {
+                                    material.shadowSide = THREE.FrontSide;
+                                }
+                            });
+                        }
+                    }
+                }
+            });
 
             // Calculate positioning
             const box = new THREE.Box3().setFromObject(this.character);
@@ -237,13 +260,15 @@ export class Avatar {
     resetThirdPersonCamera(camera) {
         if (!this.character) return;
         
-        this.cameraDistance = 5;
-        this.cameraHeight = 1.5;
+        // DON'T reset these values - keep the ones set in constructor
+        // this.cameraDistance = 5;        // REMOVE THIS LINE
+        // this.cameraHeight = 1.5;        // REMOVE THIS LINE
+        
         this.cameraAzimuth = this.character.rotation.y + Math.PI;
         this.cameraPolar = Math.PI / 3;
         
         const spherical = new THREE.Spherical();
-        spherical.radius = this.cameraDistance;
+        spherical.radius = this.cameraDistance;  // Use the current distance
         spherical.phi = this.cameraPolar;
         spherical.theta = this.cameraAzimuth;
 
@@ -251,7 +276,7 @@ export class Avatar {
         offset.setFromSpherical(spherical);
 
         this.cameraTarget.copy(this.character.position);
-        this.cameraTarget.y += this.cameraHeight;
+        this.cameraTarget.y += this.cameraHeight;  // Use the current height
         
         camera.position.copy(this.cameraTarget).add(offset);
         camera.lookAt(this.cameraTarget);
@@ -273,9 +298,6 @@ export class Avatar {
         
         camera.position.copy(this.cameraTarget).add(offset);
         camera.lookAt(this.cameraTarget);
-        
-        // Debug logging - uncomment to verify camera is updating
-        //console.log('Camera updated - position:', camera.position, 'target:', this.cameraTarget);
     }
 
     resetState() {
