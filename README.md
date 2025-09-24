@@ -13,6 +13,9 @@ There's 1 directional light configured to help emphasize the lighting from the H
 <br>
 <br>
 Ambient Occlusion is also configured to help with shadows and a mnore realistic effect with intersecting objects. The effect is not very pronounced yet, for the time being the plan is to keep a nice balance between the HDRI lighting, the directional light, shadows and how everything blends together without any compositing.<br>
+<img width="1190" height="1289" alt="Screenshot from 2025-09-24 17-32-15" src="https://github.com/user-attachments/assets/1018fff7-b92e-46ee-9488-3744d9e747a0" />
+<i>The effect of Ambient Occlusion</i>
+<br>
 <br>
 H on the keyboard will toggle between 3 states of lighting.<br>
 <br>
