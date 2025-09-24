@@ -9,6 +9,8 @@ The background is a HDRI downloaded from [polyhaven](https://polyhaven.com/hdris
 <br>
 There's 1 directional light configured to help emphasize the lighting from the HDRI so we can get nice soft shadows from the avatr and all other objects. <br>
 <img width="1190" height="1289" alt="Screenshot from 2025-09-24 17-24-53" src="https://github.com/user-attachments/assets/16aa656d-9214-48d6-89e0-ae688927a0d6" />
+<i>Avatar and other objects casting shadows</i>
+<br>
 <br>
 Ambient Occlusion is also configured to help with shadows and a mnore realistic effect with intersecting objects. The effect is not very pronounced yet, for the time being the plan is to keep a nice balance between the HDRI lighting, the directional light, shadows and how everything blends together without any compositing.<br>
 <br>
