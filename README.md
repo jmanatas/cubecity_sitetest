@@ -23,7 +23,9 @@ H on the keyboard will toggle between 3 states of lighting.<br>
 <br>
 <br>
 At the very bottom, below Cubecity, there's a plane with a cheap simulated moving water effect. An idea is to make the avatar respawns when hits the plane, avatar dies and hits water and repaswns at the original position. Another idea is to give it the ability to be submerged and swim so it can complete a task before respawning at the Grass plane. For the time being the avatar stands on the water as if it's a hard plane and can be respawned by pressing R.<br>
-[Screencast from 2025-09-24 17-51-48.webm](https://github.com/user-attachments/assets/2735bca3-f591-4ada-b178-9cfc387267f3)
+https://github.com/user-attachments/assets/eb6fb190-4a0c-47a1-ac4c-5e87ababbb45
+
+
 
 <br>
 The user can move the avatar using w/a/s/d and the mouse, space to jump and hold Shift to run.<br>
