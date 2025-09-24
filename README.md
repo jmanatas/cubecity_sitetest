@@ -1,4 +1,4 @@
-When the website loads, the user's avatar is spawned at the center of Cubecity on a Grass textured plane at position 0.0.0.
+When the website loads, the user's avatar is spawned at the center of Cubecity on a Grass textured plane at position 0.0.0.<br>
 There's vertical and horizontal planes that can be seen as walls, floors and ceillings an these are textured with images loaded from [onemillionscreenshots](https://onemillionscreenshots.com/).
 The background is a HDRI downloaded from [polyhaven](https://polyhaven.com/hdris/)
 There's 1 directional light configured to help emphasize the lighting from the HDRI so we can get nice soft shadows from the avatr and all other objects. Ambient Occlusion is also configured to help with shadows and a mnore realistic effect with intersecting objects. The effect is not very pronounced yet, for the time being the plan is to keep a nice balance between the HDRI lighting, the directional light, shadows and how everything blends together without any compositing.
