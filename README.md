@@ -46,7 +46,7 @@ The Controls button will show onscreen controls for mobile devices. On the left 
 <i>Onscreen controls for mobile devices</i>
 <br>
 <br>
-Below the Controls button, at the top right there's a Teleport button. When clicked, a list of all objects is displayed identifying each object with url for the site of the respective texture loaded per object. The user can scroll through all the object or search, once Go is pressed the avatar is immediately teleported. The user might want to be ready to switch gravity off, since the teleporting can be happening to a location where there's no floor so the avatar will no the next object below or if there's none, it will end up on the Water plane.<br>
+Below the Controls button, at the top right there's a Teleport button. When clicked, or usinf T on the keyboard, a list of all objects is displayed identifying each object with url for the site of the respective texture loaded per object. The user can scroll through all the object or search, once Go is pressed the avatar is immediately teleported. The user might want to be ready to switch gravity off, since the teleporting can be happening to a location where there's no floor so the avatar will no the next object below or if there's none, it will end up on the Water plane.<br>
 <img width="1190" height="1293" alt="Screenshot from 2025-09-24 18-11-17" src="https://github.com/user-attachments/assets/506e87b5-f05b-4a11-a1c9-d9591fca3bf0" />
 <i>Teleport Window listing sites</i>
 <br>
@@ -55,3 +55,7 @@ Below the Controls button, at the top right there's a Teleport button. When clic
 <i>Teleport Window showing all "Guess" locations in Cubecity</i>
 <br>
 <br>
+Holding Alt will dim everything and highlight in pink plane the user is pointing the mouse to. Clicking the any of the highlighted planes will load the respective site url on a new tab.
+<img width="1084" height="1190" alt="Screenshot from 2025-09-24 18-21-22" src="https://github.com/user-attachments/assets/d5ba55d5-582d-4f10-b89e-7cbf6c9c8684" />
+
+
