@@ -1,7 +1,11 @@
-When the website loads, the user's avatar is spawned at the center of Cubecity on a Grass textured plane at position 0.0.0.<br>
+When the website loads, the user's avatar is spawned at the center of Cubecity on a Grass textured plane at position 0.0.0.
+<br>
 There's vertical and horizontal planes that can be seen as walls, floors and ceillings an these are textured with images loaded from [onemillionscreenshots](https://onemillionscreenshots.com/).
+<br>
 The background is a HDRI downloaded from [polyhaven](https://polyhaven.com/hdris/)
+<br>
 There's 1 directional light configured to help emphasize the lighting from the HDRI so we can get nice soft shadows from the avatr and all other objects. Ambient Occlusion is also configured to help with shadows and a mnore realistic effect with intersecting objects. The effect is not very pronounced yet, for the time being the plan is to keep a nice balance between the HDRI lighting, the directional light, shadows and how everything blends together without any compositing.
+<br>
 H on the keyboard will toggle between 3 states of lighting
 At the very bottom, below Cubecity, there's a plane with a cheap simulated moving water effect. An idea is to make the avatar respawns when hits the plane, avatar dies and hits water and repaswns at the original position. Another idea is to give it the ability to be submerged and swim so it can complete a task before respawning at the Grass plane. For the time being the avatar with stand on the water as if it's a hard plane and can be respawned by pressing R.
 The user can move the avatar using w/a/s/d and the mouse, space to jump and hold Shift to run.
