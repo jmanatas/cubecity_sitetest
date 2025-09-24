@@ -14,7 +14,6 @@ import { screenshotDomains } from './screenshotDomains.js';
 import { 
     initHighlightEffect, 
     applyHighlightEffect, 
-    resetHighlightEffect, 
     handleHighlightMouseMove,
     setHighlightEffectEnabled,
     isHighlightEffectEnabled,
