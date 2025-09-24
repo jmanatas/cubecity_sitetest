@@ -1,5 +1,5 @@
 // highlightEffect.js
-import * as THREE from 'three';
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js';
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
 
 // Highlight effect variables

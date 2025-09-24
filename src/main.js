@@ -7,9 +7,6 @@ import { RenderPass } from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/
 import { OutlinePass } from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/postprocessing/OutlinePass.js';
 import { ShaderPass } from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/postprocessing/ShaderPass.js';
 import { FXAAShader } from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/shaders/FXAAShader.js';
-import { Capsule } from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/math/Capsule.js';
-import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/loaders/GLTFLoader.js';
-import { AvatarController } from './avatarController.js';
 import { Avatar } from './avatar.js';
 import { PhysicsWorld, createPhysicsSphere, GRAVITY, SPHERE_RADIUS, STEPS_PER_FRAME } from './physics.js';
 import { initMobileControls } from './mobileControls.js';
