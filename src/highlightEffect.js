@@ -1,5 +1,5 @@
 // highlightEffect.js
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js';
+import * as THREE from 'three';
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
 
 // Highlight effect variables
@@ -7,14 +7,14 @@ let highlightEffectEnabled = false;
 let highlightedObject = null;
 let originalMaterials = new Map();
 let lastHighlightTime = 0;
-const HIGHLIGHT_HYSTERESIS = 200; // ms delay before switching objects
+const HIGHLIGHT_HYSTERESIS = 50; // ms delay before switching objects
 
 let outlinePass;
 let worldObjects;
 let textureUrls;
 let camera;
 let renderer;
-let MOUSE_DEADZONE = 2; // pixels
+let MOUSE_DEADZONE = 1; // Reduced from 2 pixels
 let lastMouseX = 0;
 let lastMouseY = 0;
 
@@ -142,13 +142,7 @@ export function resetHighlightEffect() {
 export function handleHighlightMouseMove(event) {
     if (!highlightEffectEnabled || !worldObjects || !worldObjects.children) return;
     
-    // Check if mouse moved enough
-    if (Math.abs(event.clientX - lastMouseX) < MOUSE_DEADZONE && 
-        Math.abs(event.clientY - lastMouseY) < MOUSE_DEADZONE) {
-        return;
-    }
-
-    // Update last mouse position
+    // Update last mouse position immediately
     lastMouseX = event.clientX;
     lastMouseY = event.clientY;
 
@@ -187,11 +181,13 @@ export function handleHighlightMouseMove(event) {
         
         // Only change highlight if it's a different object
         if (!highlightedObject || highlightedObject !== bestIntersect.object) {
-            applyHighlightEffect(bestIntersect.object); // This maintains dimming
+            applyHighlightEffect(bestIntersect.object);
+            lastHighlightTime = now; // Update the highlight time
         }
     } else if (highlightedObject) {
         // Only reset if we had something highlighted
         resetHighlightEffect();
+        lastHighlightTime = performance.now();
     }
 }
 
