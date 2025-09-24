@@ -1,7 +1,6 @@
 When the website loads, the user's avatar is spawned at the center of Cubecity on a Grass textured plane at position 0.0.0.<br>
-<br>
 <img width="1190" height="1289" alt="Screenshot from 2025-09-24 17-20-31" src="https://github.com/user-attachments/assets/7ede1ec4-0c5e-4405-a49f-33c2d0f37624" />
-Grass plane positioned at the centre of Cubecit where the avatar spawns the first time.
+<i>Grass plane positioned at the centre of Cubecit where the avatar spawns the first time.</i>
 <br>
 <br>
 There's vertical and horizontal planes that can be seen as walls, floors and ceillings an these are textured with images loaded from [onemillionscreenshots](https://onemillionscreenshots.com/).<br>
