@@ -18,7 +18,7 @@ Ambient Occlusion is also configured to help with shadows and a mnore realistic 
 <br>
 <br>
 H on the keyboard will toggle between 3 states of lighting.<br>
-<img width="376" height="409" alt="Screenshot from 2025-09-24 17-35-07" src="https://github.com/user-attachments/assets/d0d89d91-dcea-4919-80c9-10d9effafc88" /><img width="376" height="409" alt="Screenshot from 2025-09-24 17-35-11" src="https://github.com/user-attachments/assets/f1fea410-3a8b-4865-8085-7a193f5c2533" /><img width="376" height="409" alt="Screenshot from 2025-09-24 17-35-19" src="https://github.com/user-attachments/assets/77e252e6-0e4c-49ed-8ed4-03b2b5a2fc49" />
+<img width="356" height="389" alt="Screenshot from 2025-09-24 17-35-07" src="https://github.com/user-attachments/assets/d0d89d91-dcea-4919-80c9-10d9effafc88" /><img width="356" height="389" alt="Screenshot from 2025-09-24 17-35-11" src="https://github.com/user-attachments/assets/f1fea410-3a8b-4865-8085-7a193f5c2533" /><img width="356" height="389" alt="Screenshot from 2025-09-24 17-35-19" src="https://github.com/user-attachments/assets/77e252e6-0e4c-49ed-8ed4-03b2b5a2fc49" />
 
 
 
