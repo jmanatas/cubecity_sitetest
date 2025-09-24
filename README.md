@@ -19,12 +19,12 @@ Ambient Occlusion is also configured to help with shadows and a mnore realistic 
 <br>
 H on the keyboard will toggle between 3 states of lighting.<br>
 <img width="330" height="363" alt="Screenshot from 2025-09-24 17-35-07" src="https://github.com/user-attachments/assets/d0d89d91-dcea-4919-80c9-10d9effafc88" /><img width="330" height="363" alt="Screenshot from 2025-09-24 17-35-11" src="https://github.com/user-attachments/assets/f1fea410-3a8b-4865-8085-7a193f5c2533" /><img width="330" height="363" alt="Screenshot from 2025-09-24 17-35-19" src="https://github.com/user-attachments/assets/77e252e6-0e4c-49ed-8ed4-03b2b5a2fc49" />
-
-
-
+<i>Open images on new tabs to see the differences</i>
 <br>
 <br>
-At the very bottom, below Cubecity, there's a plane with a cheap simulated moving water effect. An idea is to make the avatar respawns when hits the plane, avatar dies and hits water and repaswns at the original position. Another idea is to give it the ability to be submerged and swim so it can complete a task before respawning at the Grass plane. For the time being the avatar with stand on the water as if it's a hard plane and can be respawned by pressing R.<br>
+At the very bottom, below Cubecity, there's a plane with a cheap simulated moving water effect. An idea is to make the avatar respawns when hits the plane, avatar dies and hits water and repaswns at the original position. Another idea is to give it the ability to be submerged and swim so it can complete a task before respawning at the Grass plane. For the time being the avatar stands on the water as if it's a hard plane and can be respawned by pressing R.<br>
+[Screencast from 2025-09-24 17-51-48.webm](https://github.com/user-attachments/assets/2735bca3-f591-4ada-b178-9cfc387267f3)
+
 <br>
 The user can move the avatar using w/a/s/d and the mouse, space to jump and hold Shift to run.<br>
 <br>
