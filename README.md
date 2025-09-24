@@ -42,13 +42,15 @@ Pressing the Left mouse button will have the avatar shooting green balls. <br>
 Esc releases the mouse so the user can reach the controls at the top right corner of the screen.<br>
 <br>
 The Controls button will show onscreen controls for mobile devices. On the left handside a joystick allows the user to control the avatr's movement and switch Run on or off, while on the right handside there's a joystick to control the camera, a gravity on/off button, up/down buttons for when gravity is turned off, a green button with and an arrow pointing up that is for jumping and a red button with a circle for shooting the green balls. So, all controls for desktop are available for mobile.<br>
-<img width="1190" height="1293" alt="Screenshot from 2025-09-24 18-06-12" src="https://github.com/user-attachments/assets/46b0487f-5930-41d8-a128-896110391f82" />
+<img width="1190" height="1293" alt="Screenshot from 2025-09-24 18-07-52" src="https://github.com/user-attachments/assets/95ddbc05-aa12-4d19-ac46-aab987e27287" />
 <i>Onscreen controls for mobile devices</i>
 <br>
 <br>
 Below the Controls button, at the top right there's a Teleport button. When clicked, a list of all objects is displayed identifying each object with url for the site of the respective texture loaded per object. The user can scroll through all the object or search, once Go is pressed the avatar is immediately teleported. The user might want to be ready to switch gravity off, since the teleporting can be happening to a location where there's no floor so the avatar will no the next object below or if there's none, it will end up on the Water plane.<br>
 <img width="1190" height="1293" alt="Screenshot from 2025-09-24 18-11-17" src="https://github.com/user-attachments/assets/506e87b5-f05b-4a11-a1c9-d9591fca3bf0" />
 <i>Teleport Window listing sites</i>
+<br>
+<br>
 <img width="1190" height="1293" alt="Screenshot from 2025-09-24 18-09-45" src="https://github.com/user-attachments/assets/85b394c1-ea8f-4a16-83e1-b8e6cd98bfbb" />
 <i>Teleport Window showing all "Guess" locations in Cubecity</i>
 <br>
