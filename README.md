@@ -55,7 +55,7 @@ Below the Controls button, at the top right there's a Teleport button. When clic
 <i>Teleport Window showing all "Guess" locations in Cubecity</i>
 <br>
 <br>
-Holding Alt will dim everything and highlight in pink plane the user is pointing the mouse to. Clicking the any of the highlighted planes will load the respective site url on a new tab.
+Holding Alt will dim everything and highlight in pink the plane where the user is pointing the mouse to. Clicking any of the highlighted planes will open the respective site url on a new tab.
 <img width="1084" height="1190" alt="Screenshot from 2025-09-24 18-21-22" src="https://github.com/user-attachments/assets/d5ba55d5-582d-4f10-b89e-7cbf6c9c8684" />
 
 
